@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PoC Preview: CPQ Product Configuration</title>
+<style>
+  :root {
+    --sf-blue: #0176d3;
+    --sf-blue-dark: #032d60;
+    --sf-bg: #f3f2f2;
+    --sf-border: #dddbda;
+    --sf-text: #181818;
+    --sf-text-muted: #706e6b;
+    --sf-green: #04844b;
+    --sf-green-bg: #e9f6ec;
+    --cirrius-orange: #f78e1d;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--sf-bg);
+    color: var(--sf-text);
+    font-family: "Salesforce Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 16px;
+  }
+  h1, h2 { margin: 0; }
+
+  .poc-banner {
+    background: var(--cirrius-orange);
+    color: #1a1200;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 20px; font-size: 0.85rem; font-weight: 600; flex-wrap: wrap; gap: 8px;
+  }
+  .poc-banner a { color: inherit; text-decoration: underline; font-weight: 600; }
+
+  .sf-globalheader {
+    height: 44px; background: var(--sf-blue-dark); color: #fff;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 16px; font-size: 0.85rem;
+  }
+  .sf-gh-left { display: flex; align-items: center; gap: 12px; }
+  .sf-gh-appicon { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; width: 18px; }
+  .sf-gh-appicon span { width: 4px; height: 4px; background: #fff; border-radius: 1px; opacity: 0.85; }
+  .sf-gh-appname { font-weight: 600; }
+  .sf-gh-search {
+    flex: 1; max-width: 380px; margin: 0 24px; background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px; padding: 6px 10px; color: rgba(255, 255, 255, 0.7); font-size: 0.8rem;
+  }
+  .sf-gh-right { display: flex; gap: 18px; align-items: center; font-size: 1rem; opacity: 0.85; }
+  .sf-gh-avatar {
+    width: 26px; height: 26px; border-radius: 50%; background: #fff; color: var(--sf-blue-dark);
+    display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; opacity: 1;
+  }
+
+  .sf-page { max-width: 1100px; margin: 0 auto; padding: 20px 24px 60px; }
+  .sf-breadcrumb { font-size: 0.78rem; color: var(--sf-text-muted); margin-bottom: 8px; }
+  .sf-breadcrumb span { margin: 0 6px; }
+
+  .sf-pageheader { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 16px; }
+  .sf-pageheader-icon {
+    width: 40px; height: 40px; border-radius: 8px; background: var(--sf-blue); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex: 0 0 auto;
+  }
+  .sf-pageheader-title { flex: 1; }
+  .sf-pageheader-eyebrow { font-size: 0.72rem; color: var(--sf-text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
+  .sf-pageheader h1 { font-size: 1.4rem; font-weight: 600; margin-top: 2px; }
+  .sf-pageheader-actions { display: flex; gap: 8px; margin-top: 4px; }
+  .sf-btn {
+    background: #fff; border: 1px solid var(--sf-blue); color: var(--sf-blue);
+    font-size: 0.82rem; font-weight: 600; padding: 7px 14px; border-radius: 4px; cursor: default;
+    font-family: inherit;
+  }
+  .sf-btn-icon { padding: 7px 10px; }
+
+  .sf-highlights {
+    display: flex; background: #fff; border: 1px solid var(--sf-border); border-radius: 8px;
+    padding: 14px 20px; gap: 32px; margin-bottom: 16px; overflow-x: auto;
+  }
+  .sf-highlight { display: flex; flex-direction: column; gap: 4px; min-width: 110px; flex: 0 0 auto; }
+  .sf-hl-label { font-size: 0.7rem; color: var(--sf-text-muted); text-transform: uppercase; letter-spacing: 0.02em; }
+  .sf-hl-value { font-size: 0.88rem; color: var(--sf-blue); font-weight: 500; }
+
+  .sf-pill {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 0.76rem; font-weight: 600;
+    padding: 3px 10px; border-radius: 999px; background: var(--sf-green-bg); color: var(--sf-green);
+  }
+  .sf-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--sf-green); }
+
+  .sf-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--sf-border); margin-bottom: 16px; }
+  .sf-tab { padding: 10px 14px; font-size: 0.85rem; color: var(--sf-text-muted); border-bottom: 3px solid transparent; }
+  .sf-tab.active { color: var(--sf-blue); border-bottom-color: var(--sf-blue); font-weight: 600; }
+
+  .sf-card { background: #fff; border: 1px solid var(--sf-border); border-radius: 8px; padding: 18px 20px; margin-bottom: 16px; }
+  .sf-card-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 14px; }
+
+  .sf-fieldgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 32px; }
+  .sf-field { display: flex; flex-direction: column; gap: 3px; }
+  .sf-field-label { font-size: 0.72rem; color: var(--sf-text-muted); }
+  .sf-field-value { font-size: 0.88rem; }
+
+  .sf-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .table-wrap { overflow-x: auto; }
+  .sf-table th {
+    text-align: left; font-size: 0.72rem; text-transform: uppercase; color: var(--sf-text-muted);
+    border-bottom: 1px solid var(--sf-border); padding: 0 10px 8px 0;
+  }
+  .sf-table td { padding: 10px 10px 10px 0; border-bottom: 1px solid #f0efef; vertical-align: top; }
+  .sf-table tr:last-child td { border-bottom: none; }
+
+  .sf-footer-note { font-size: 0.78rem; color: var(--sf-text-muted); margin-top: 8px; }
+
+  @media (max-width: 720px) {
+    .sf-fieldgrid { grid-template-columns: 1fr; }
+    .sf-gh-search { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="poc-banner">
+  <span>PoC Preview &middot; Cirrius Agentic Pipeline &middot; CPQ pipeline &middot; generated from a signed-off story</span>
+  <a href="Experian - BA Process Design Readback - 2026-08-10.html">&larr; Back to the readback</a>
+</div>
+
+<header class="sf-globalheader">
+  <div class="sf-gh-left">
+    <div class="sf-gh-appicon"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    <span class="sf-gh-appname">Sales</span>
+  </div>
+  <div class="sf-gh-search">Search...</div>
+  <div class="sf-gh-right">
+    <span>&#9881;</span>
+    <span>&#63;</span>
+    <span>&#128276;</span>
+    <span class="sf-gh-avatar">GF</span>
+  </div>
+</header>
+
+<div class="sf-page">
+  <div class="sf-breadcrumb">Products <span>&rsaquo;</span> BusinessIQ - UK Credit Reports &amp; Images</div>
+
+  <div class="sf-pageheader">
+    <div class="sf-pageheader-icon">&#128230;</div>
+    <div class="sf-pageheader-title">
+      <div class="sf-pageheader-eyebrow">Product Configuration</div>
+      <h1>BusinessIQ - UK Credit Reports &amp; Images</h1>
+    </div>
+    <div class="sf-pageheader-actions">
+      <button class="sf-btn">Edit</button>
+      <button class="sf-btn">Clone</button>
+      <button class="sf-btn sf-btn-icon">&#9662;</button>
+    </div>
+  </div>
+
+  <div class="sf-highlights">
+    <div class="sf-highlight"><span class="sf-hl-label">Product Code</span><span class="sf-hl-value">PV06627</span></div>
+    <div class="sf-highlight"><span class="sf-hl-label">Product Family</span><span class="sf-hl-value">BusinessIQ</span></div>
+    <div class="sf-highlight"><span class="sf-hl-label">Commitment Type</span><span class="sf-hl-value">Yes</span></div>
+    <div class="sf-highlight"><span class="sf-hl-label">Commitment Base</span><span class="sf-hl-value">Volume</span></div>
+    <div class="sf-highlight"><span class="sf-hl-label">Status</span><span class="sf-pill">Active</span></div>
+  </div>
+
+  <div class="sf-tabs">
+    <div class="sf-tab active">Details</div>
+    <div class="sf-tab">Related</div>
+    <div class="sf-tab">Configuration</div>
+    <div class="sf-tab">Pricing</div>
+  </div>
+
+  <div class="sf-card">
+    <h2 class="sf-card-title">Product Information</h2>
+    <div class="sf-fieldgrid">
+      <div class="sf-field"><span class="sf-field-label">Product Name</span><span class="sf-field-value">BusinessIQ - UK Credit Reports &amp; Images</span></div>
+      <div class="sf-field"><span class="sf-field-label">Commitment Type</span><span class="sf-field-value">Yes</span></div>
+      <div class="sf-field"><span class="sf-field-label">Product Code</span><span class="sf-field-value">PV06627</span></div>
+      <div class="sf-field"><span class="sf-field-label">Commitment Base</span><span class="sf-field-value">Volume</span></div>
+      <div class="sf-field"><span class="sf-field-label">Product Family</span><span class="sf-field-value">BusinessIQ</span></div>
+      <div class="sf-field"><span class="sf-field-label">Billing Period &amp; Cycle</span><span class="sf-field-value">Annual / Advance</span></div>
+      <div class="sf-field"><span class="sf-field-label">Linked Product</span><span class="sf-field-value">International Reports (PV02499)</span></div>
+      <div class="sf-field"><span class="sf-field-label">Segment</span><span class="sf-field-value">Financial Services</span></div>
+    </div>
+  </div>
+
+  <div class="sf-card">
+    <h2 class="sf-card-title">Product Options</h2>
+    <div class="table-wrap">
+      <table class="sf-table">
+        <thead>
+          <tr><th>Feature</th><th>Option</th><th>Min</th><th>Max</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Annual License Fee</td><td>&mdash;</td><td>0</td><td>1</td><td>Optional, shown before Add-on &amp; Support</td></tr>
+          <tr><td>UK Credit Report</td><td>UK Risk Report</td><td>1</td><td>1</td><td>Mandatory. VADs available as sub-options</td></tr>
+          <tr><td>UK Credit Report</td><td>UK Manual Report</td><td>0</td><td>1</td><td>Optional, supplemental schedule</td></tr>
+          <tr><td>UK Images</td><td>UK Document Images</td><td>1</td><td>1</td><td>Free, preselected, non-editable</td></tr>
+          <tr><td>Add-on &amp; Support</td><td>Support Extended Hours</td><td>0</td><td>1</td><td>Excluded from commitment fee</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <p class="sf-footer-note">Generated by the Cirrius Agentic Pipeline, PoC Skill, from the signed-off user story.</p>
+</div>
+
+</body>
+</html>
