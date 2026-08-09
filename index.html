@@ -1043,6 +1043,29 @@
           </tbody>
         </table>
       </div>
+
+      <p class="section-label">Backup tooling continuity (AgentForce Vibes)</p>
+      <p>Sadar's team wants Claude Code as primary, with <strong>AgentForce Vibes</strong> — Salesforce's rebranded Einstein for Developers, also running on Claude Sonnet 4.5 under the hood — as a backup if Claude Code credits run out mid-month. Vibes' skill format (<code>.vibes/skills/</code>) is structurally close to Claude Code's, and it supports adding remote MCP servers the same way, so this pipeline's skill logic is likely portable. Bitbucket access isn't a concern either way — VS Code's native git works with any publicly reachable git remote.</p>
+      <p class="insight">The real risk isn't the tool surface, it's the network: Vibes only connects to resources reachable via an unrestricted public URL — it explicitly does not work behind a VPN or private network. If Experian's Bitbucket, SharePoint, or Lucid sit behind a corporate VPN or IP-allowlist, Vibes can't reach them as a fallback, regardless of MCP support. Worth confirming before this gets promised to the team as a real backup path.</p>
+      <div class="table-wrap">
+        <table class="asks">
+          <thead>
+            <tr><th>Ask</th><th>Owner</th><th>Note</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Confirm AgentForce Vibes licensing model</td>
+              <td>Sadar</td>
+              <td>Flex Credits (consumption pool) vs. a named-user Permission Set License — changes both cost exposure and whether new BAs can self-serve access<br /><span class="flag">New ask</span></td>
+            </tr>
+            <tr>
+              <td>Confirm Bitbucket, SharePoint, and Lucid are reachable via an unrestricted public URL</td>
+              <td>Sadar, Mark</td>
+              <td>Vibes' remote-connection model (git remotes and MCP servers alike) requires public reachability — a VPN or private network on any of the three blocks Vibes from reaching it as a fallback<br /><span class="flag">New ask</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </section>
 
   </main>
