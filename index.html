@@ -1284,7 +1284,6 @@
   <p class="detail-needflag" id="detailNeed" hidden></p>
 </aside>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
 <script>
   (function () {
     var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
@@ -1557,10 +1556,6 @@
   })();
 
   (function () {
-    var SUPABASE_URL = 'https://zdonuvafqcviapusqwsv.supabase.co';
-    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpkb251dmFmcWN2aWFwdXNxd3N2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk1ODY3NjMsImV4cCI6MjEwNTE2Mjc2M30.ausrW2sD-5UCK7GyO809m6ChcMrpC7pD-7M8rBDa9yE';
-    var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
     var form = document.getElementById('fbForm');
     var filesInput = document.getElementById('fbFiles');
     var fileListEl = document.getElementById('fbFileList');
@@ -1620,12 +1615,14 @@
     }
 
     function loadIssues() {
-      sb.from('feedback_issues').select('*').order('created_at', { ascending: false }).then(function (res) {
-        if (res.error) {
-          listEl.innerHTML = '<p class="note">Couldn\'t load prior feedback: ' + escapeHtml(res.error.message) + '</p>';
+      fetch('/api/feedback/list').then(function (r) { return r.json(); }).then(function (data) {
+        if (data && data.error) {
+          listEl.innerHTML = '<p class="note">Couldn\'t load prior feedback: ' + escapeHtml(data.error) + '</p>';
           return;
         }
-        renderList(res.data || []);
+        renderList(data || []);
+      }).catch(function () {
+        listEl.innerHTML = '<p class="note">Couldn\'t load prior feedback.</p>';
       });
     }
     loadIssues();
@@ -1675,42 +1672,33 @@
       submitBtn.textContent = 'Submitting…';
       statusEl.hidden = true;
 
-      var issueId = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() :
-        'fb-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+      var payload = new FormData();
+      payload.set('description', description);
+      payload.set('page_section', document.getElementById('fbSection').value.trim());
+      payload.set('reporter_name', document.getElementById('fbName').value.trim());
+      payload.set('reporter_email', document.getElementById('fbEmail').value.trim());
+      selectedFiles.forEach(function (file) { payload.append('files', file, file.name); });
 
-      var uploadPromises = selectedFiles.map(function (file, i) {
-        var safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
-        var path = issueId + '/' + i + '-' + safeName;
-        return sb.storage.from('feedback-attachments').upload(path, file).then(function (res) {
-          if (res.error) { throw res.error; }
-          return sb.storage.from('feedback-attachments').getPublicUrl(path).data.publicUrl;
+      fetch('/api/feedback/submit', { method: 'POST', body: payload })
+        .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+        .then(function (result) {
+          if (!result.ok || (result.data && result.data.error)) {
+            throw new Error((result.data && result.data.error) || 'Submission failed.');
+          }
+          statusEl.hidden = false;
+          statusEl.className = 'fb-status success';
+          statusEl.textContent = 'Thanks — your feedback was submitted.';
+          submitBtn.textContent = 'Submitted';
+          loadIssues();
+          setTimeout(resetForm, 1600);
+        })
+        .catch(function (err) {
+          statusEl.hidden = false;
+          statusEl.className = 'fb-status error';
+          statusEl.textContent = 'Something went wrong submitting your feedback: ' + (err && err.message ? err.message : 'please try again.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit feedback';
         });
-      });
-
-      Promise.all(uploadPromises).then(function (urls) {
-        return sb.from('feedback_issues').insert({
-          id: issueId,
-          description: description,
-          page_section: document.getElementById('fbSection').value.trim() || null,
-          reporter_name: document.getElementById('fbName').value.trim() || null,
-          reporter_email: document.getElementById('fbEmail').value.trim() || null,
-          attachment_paths: urls
-        });
-      }).then(function (res) {
-        if (res.error) { throw res.error; }
-        statusEl.hidden = false;
-        statusEl.className = 'fb-status success';
-        statusEl.textContent = 'Thanks — your feedback was submitted.';
-        submitBtn.textContent = 'Submitted';
-        loadIssues();
-        setTimeout(resetForm, 1600);
-      }).catch(function (err) {
-        statusEl.hidden = false;
-        statusEl.className = 'fb-status error';
-        statusEl.textContent = 'Something went wrong submitting your feedback: ' + (err && err.message ? err.message : 'please try again.');
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit feedback';
-      });
     });
   })();
 </script>

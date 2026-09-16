@@ -142,7 +142,7 @@
   <br />
   <button id="gateSubmit">Enter</button>
   <p class="err" id="gateErr"></p>
-  <p class="note">This is a soft deterrent only, not real access control — anyone with the site's public anon key and a bit of digging could still read/update this table directly. Fine for a short internal UAT window; move to Supabase Auth before this holds anything sensitive long-term.</p>
+  <p class="note">This passphrase is checked server-side by a Cloudflare Worker — it's never shipped to the browser, and the database credentials that back this page aren't either. The list of submissions itself is also visible on the readback page's own UAT Feedback tab (by design, so testers can see prior reports), so this gate specifically protects who can change a status, not who can see feedback exists.</p>
 </div>
 
 <div class="wrap" id="app" hidden>
@@ -160,56 +160,43 @@
   <div id="list"></div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
 <script>
   (function () {
-    var SUPABASE_URL = 'https://zdonuvafqcviapusqwsv.supabase.co';
-    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpkb251dmFmcWN2aWFwdXNxd3N2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk1ODY3NjMsImV4cCI6MjEwNTE2Mjc2M30.ausrW2sD-5UCK7GyO809m6ChcMrpC7pD-7M8rBDa9yE';
-    var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // SHA-256 of the passphrase — this only keeps it out of plain view-source,
-    // it is NOT real security (see the note under the gate). To change it, hash a
-    // new passphrase (e.g. `python3 -c "import hashlib;print(hashlib.sha256(b'newpass').hexdigest())"`)
-    // and paste the result below.
-    var PASS_HASH = '7879e56ec5ae931d60f0f21fd60d1f7a871e32246fe67c0ecf26ab2595d0bdf5';
-    var SESSION_KEY = 'experianFeedbackTriageOk';
-
-    function sha256Hex(text) {
-      var enc = new TextEncoder().encode(text);
-      return crypto.subtle.digest('SHA-256', enc).then(function (buf) {
-        return Array.prototype.map.call(new Uint8Array(buf), function (b) {
-          return b.toString(16).padStart(2, '0');
-        }).join('');
-      });
-    }
+    // The passphrase itself is never in this page — entering it calls
+    // /api/feedback/verify-pass, which checks it against a Cloudflare Worker
+    // secret (ADMIN_PASS). Held in memory for this tab only, so it can be sent
+    // along with each status update (also checked server-side on every save).
+    var adminPass = null;
 
     var gate = document.getElementById('gate');
     var app = document.getElementById('app');
     var gatePass = document.getElementById('gatePass');
     var gateErr = document.getElementById('gateErr');
 
-    function unlock() {
+    function unlock(pass) {
+      adminPass = pass;
       gate.hidden = true;
       app.hidden = false;
       loadIssues();
     }
 
-    try {
-      if (sessionStorage.getItem(SESSION_KEY) === '1') { unlock(); }
-    } catch (e) { /* private browsing / storage blocked — fall through to gate */ }
-
-    document.getElementById('gateSubmit').addEventListener('click', function () {
-      sha256Hex(gatePass.value).then(function (hex) {
-        if (hex === PASS_HASH) {
-          try { sessionStorage.setItem(SESSION_KEY, '1'); } catch (e) {}
-          unlock();
-        } else {
-          gateErr.textContent = 'Incorrect passphrase.';
-        }
+    function tryUnlock() {
+      gateErr.textContent = '';
+      var pass = gatePass.value;
+      fetch('/api/feedback/verify-pass', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminPass: pass })
+      }).then(function (r) {
+        if (r.ok) { unlock(pass); } else { gateErr.textContent = 'Incorrect passphrase.'; }
+      }).catch(function () {
+        gateErr.textContent = 'Could not reach the server — try again.';
       });
-    });
+    }
+
+    document.getElementById('gateSubmit').addEventListener('click', tryUnlock);
     gatePass.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') { document.getElementById('gateSubmit').click(); }
+      if (e.key === 'Enter') { tryUnlock(); }
     });
 
     var STATUS_LABEL = {
@@ -264,13 +251,17 @@
           var id = sel.dataset.id;
           var note = listEl.querySelector('[data-note="' + id + '"]');
           note.textContent = 'Saving…';
-          sb.from('feedback_issues')
-            .update({ status: sel.value, updated_at: new Date().toISOString() })
-            .eq('id', id)
-            .then(function (res) {
-              note.textContent = res.error ? 'Failed to save' : 'Saved';
-              setTimeout(function () { note.textContent = ''; }, 2000);
-            });
+          fetch('/api/feedback/status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: id, status: sel.value, adminPass: adminPass })
+          }).then(function (r) {
+            note.textContent = r.ok ? 'Saved' : 'Failed to save';
+            setTimeout(function () { note.textContent = ''; }, 2000);
+          }).catch(function () {
+            note.textContent = 'Failed to save';
+            setTimeout(function () { note.textContent = ''; }, 2000);
+          });
         });
       });
     }
@@ -284,14 +275,18 @@
     var allRows = [];
     function loadIssues() {
       listEl.innerHTML = '<p class="empty">Loading…</p>';
-      sb.from('feedback_issues').select('*').order('created_at', { ascending: false }).then(function (res) {
-        if (res.error) {
-          listEl.innerHTML = '<p class="empty">Failed to load: ' + escapeHtml(res.error.message) + '</p>';
-          return;
-        }
-        allRows = res.data || [];
-        render(allRows);
-      });
+      fetch('/api/feedback/list').then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+        .then(function (result) {
+          if (!result.ok || (result.data && result.data.error)) {
+            listEl.innerHTML = '<p class="empty">Failed to load: ' + escapeHtml((result.data && result.data.error) || 'unknown error') + '</p>';
+            return;
+          }
+          allRows = result.data || [];
+          render(allRows);
+        })
+        .catch(function () {
+          listEl.innerHTML = '<p class="empty">Failed to load.</p>';
+        });
     }
 
     document.querySelectorAll('.filter-btn').forEach(function (btn) {
