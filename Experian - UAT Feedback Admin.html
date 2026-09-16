@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>UAT Feedback Triage — Experian</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300..800;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent: #f78e1d;
+    --accent-strong: #d9720a;
+    --accent-tint: #fdf1e2;
+    --ink: #1a1a1a;
+    --paper: #ffffff;
+    --surface: #f7f5f1;
+    --muted: #6b6f76;
+    --line: #e3e0da;
+    --line-strong: #cfcac0;
+    --ok: #4a8f5c;
+    --ok-tint: #e9f4ec;
+    --na: #8a8a8a;
+    --na-tint: #ececec;
+    --open-c: #b4543a;
+    --open-tint: #fbeae5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --accent: #f78e1d;
+      --accent-strong: #ffab4d;
+      --accent-tint: #2a2013;
+      --ink: #f2ede4;
+      --paper: #15130f;
+      --surface: #201b14;
+      --muted: #a89f8f;
+      --line: #332c22;
+      --line-strong: #463c2d;
+      --ok: #6fbf83;
+      --ok-tint: #1c2b20;
+      --na: #9a9a9a;
+      --na-tint: #262626;
+      --open-c: #e08868;
+      --open-tint: #2e1f18;
+    }
+  }
+  :root[data-theme="dark"] {
+    --accent: #f78e1d; --accent-strong: #ffab4d; --accent-tint: #2a2013;
+    --ink: #f2ede4; --paper: #15130f; --surface: #201b14; --muted: #a89f8f;
+    --line: #332c22; --line-strong: #463c2d;
+    --ok: #6fbf83; --ok-tint: #1c2b20; --na: #9a9a9a; --na-tint: #262626;
+    --open-c: #e08868; --open-tint: #2e1f18;
+  }
+  :root[data-theme="light"] {
+    --accent: #f78e1d; --accent-strong: #d9720a; --accent-tint: #fdf1e2;
+    --ink: #1a1a1a; --paper: #ffffff; --surface: #f7f5f1; --muted: #6b6f76;
+    --line: #e3e0da; --line-strong: #cfcac0;
+    --ok: #4a8f5c; --ok-tint: #e9f4ec; --na: #8a8a8a; --na-tint: #ececec;
+    --open-c: #b4543a; --open-tint: #fbeae5;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: "Inter", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { font-size: 1.5rem; font-weight: 800; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 28px; }
+
+  /* ---- Gate ---- */
+  .gate { max-width: 380px; margin: 120px auto; text-align: center; }
+  .gate input {
+    font: inherit; font-size: 0.95rem; width: 100%; padding: 10px 14px;
+    border-radius: 8px; border: 1px solid var(--line-strong); background: var(--surface);
+    color: var(--ink); margin: 16px 0 10px;
+  }
+  .gate button {
+    font: inherit; font-weight: 700; font-size: 0.9rem; background: var(--accent);
+    border: none; color: #1a1200; padding: 10px 20px; border-radius: 8px; cursor: pointer;
+  }
+  .gate button:hover { background: var(--accent-strong); color: #fff; }
+  .gate .err { color: var(--open-c); font-size: 0.85rem; margin-top: 8px; min-height: 1.2em; }
+  .gate .note { color: var(--muted); font-size: 0.78rem; margin-top: 18px; line-height: 1.5; }
+
+  /* ---- Toolbar ---- */
+  .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+  .filter-btn {
+    font: inherit; font-size: 0.82rem; font-weight: 600; padding: 6px 14px;
+    border-radius: 999px; border: 1px solid var(--line-strong); background: var(--surface);
+    color: var(--muted); cursor: pointer;
+  }
+  .filter-btn[aria-selected="true"] { background: var(--accent); color: #1a1200; border-color: transparent; }
+  .refresh-btn {
+    margin-left: auto; font: inherit; font-size: 0.82rem; font-weight: 600;
+    padding: 6px 14px; border-radius: 8px; border: 1px solid var(--line-strong);
+    background: var(--paper); color: var(--ink); cursor: pointer;
+  }
+  .refresh-btn:hover { background: var(--surface); }
+
+  /* ---- Cards ---- */
+  .empty { color: var(--muted); font-size: 0.92rem; padding: 40px 0; text-align: center; }
+  .issue {
+    border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
+    padding: 18px 20px; margin-bottom: 14px;
+  }
+  .issue-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+  .issue-meta { font-size: 0.76rem; color: var(--muted); margin-bottom: 6px; }
+  .issue-desc { font-size: 0.94rem; line-height: 1.5; white-space: pre-wrap; }
+  .issue-reporter { font-size: 0.8rem; color: var(--muted); margin-top: 8px; }
+  .issue-atts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .issue-atts a {
+    display: inline-flex; align-items: center; font-size: 0.78rem; color: var(--accent-strong);
+    text-decoration: none; border: 1px solid var(--line-strong); border-radius: 6px; padding: 4px 9px;
+  }
+  .issue-atts a:hover { background: var(--paper); }
+  .issue-atts img {
+    width: 72px; height: 72px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line-strong);
+  }
+  .status-pill {
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+    padding: 3px 10px; border-radius: 999px; white-space: nowrap; flex: 0 0 auto;
+  }
+  .status-pill.open { background: var(--open-tint); color: var(--open-c); }
+  .status-pill.resolved_working { background: var(--ok-tint); color: var(--ok); }
+  .status-pill.not_applicable_out_of_scope { background: var(--na-tint); color: var(--na); }
+  .issue-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .issue-actions select {
+    font: inherit; font-size: 0.82rem; padding: 6px 10px; border-radius: 6px;
+    border: 1px solid var(--line-strong); background: var(--paper); color: var(--ink);
+  }
+  .save-note { font-size: 0.76rem; color: var(--muted); align-self: center; }
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <h1>UAT Feedback Triage</h1>
+  <p class="sub">Experian — Agentic Salesforce Delivery Pipeline</p>
+  <input type="password" id="gatePass" placeholder="Passphrase" autocomplete="off" />
+  <br />
+  <button id="gateSubmit">Enter</button>
+  <p class="err" id="gateErr"></p>
+  <p class="note">This is a soft deterrent only, not real access control — anyone with the site's public anon key and a bit of digging could still read/update this table directly. Fine for a short internal UAT window; move to Supabase Auth before this holds anything sensitive long-term.</p>
+</div>
+
+<div class="wrap" id="app" hidden>
+  <h1>UAT Feedback Triage</h1>
+  <p class="sub">Experian — Agentic Salesforce Delivery Pipeline. Submissions from the readback page's "Report an issue" form.</p>
+
+  <div class="toolbar" role="tablist">
+    <button class="filter-btn" data-filter="all" aria-selected="true">All</button>
+    <button class="filter-btn" data-filter="open" aria-selected="false">Open</button>
+    <button class="filter-btn" data-filter="resolved_working" aria-selected="false">Resolved / working</button>
+    <button class="filter-btn" data-filter="not_applicable_out_of_scope" aria-selected="false">N/A / out of scope</button>
+    <button class="refresh-btn" id="refreshBtn" type="button">↻ Refresh</button>
+  </div>
+
+  <div id="list"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
+<script>
+  (function () {
+    var SUPABASE_URL = 'https://zdonuvafqcviapusqwsv.supabase.co';
+    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpkb251dmFmcWN2aWFwdXNxd3N2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk1ODY3NjMsImV4cCI6MjEwNTE2Mjc2M30.ausrW2sD-5UCK7GyO809m6ChcMrpC7pD-7M8rBDa9yE';
+    var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // SHA-256 of the passphrase — this only keeps it out of plain view-source,
+    // it is NOT real security (see the note under the gate). To change it, hash a
+    // new passphrase (e.g. `python3 -c "import hashlib;print(hashlib.sha256(b'newpass').hexdigest())"`)
+    // and paste the result below.
+    var PASS_HASH = '7879e56ec5ae931d60f0f21fd60d1f7a871e32246fe67c0ecf26ab2595d0bdf5';
+    var SESSION_KEY = 'experianFeedbackTriageOk';
+
+    function sha256Hex(text) {
+      var enc = new TextEncoder().encode(text);
+      return crypto.subtle.digest('SHA-256', enc).then(function (buf) {
+        return Array.prototype.map.call(new Uint8Array(buf), function (b) {
+          return b.toString(16).padStart(2, '0');
+        }).join('');
+      });
+    }
+
+    var gate = document.getElementById('gate');
+    var app = document.getElementById('app');
+    var gatePass = document.getElementById('gatePass');
+    var gateErr = document.getElementById('gateErr');
+
+    function unlock() {
+      gate.hidden = true;
+      app.hidden = false;
+      loadIssues();
+    }
+
+    try {
+      if (sessionStorage.getItem(SESSION_KEY) === '1') { unlock(); }
+    } catch (e) { /* private browsing / storage blocked — fall through to gate */ }
+
+    document.getElementById('gateSubmit').addEventListener('click', function () {
+      sha256Hex(gatePass.value).then(function (hex) {
+        if (hex === PASS_HASH) {
+          try { sessionStorage.setItem(SESSION_KEY, '1'); } catch (e) {}
+          unlock();
+        } else {
+          gateErr.textContent = 'Incorrect passphrase.';
+        }
+      });
+    });
+    gatePass.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { document.getElementById('gateSubmit').click(); }
+    });
+
+    var STATUS_LABEL = {
+      open: 'Open',
+      resolved_working: 'Resolved / working',
+      not_applicable_out_of_scope: 'N/A / out of scope'
+    };
+    var currentFilter = 'all';
+    var listEl = document.getElementById('list');
+
+    function isImage(url) { return /\.(png|jpe?g|gif|webp|svg)$/i.test(url); }
+
+    function render(rows) {
+      var filtered = currentFilter === 'all' ? rows : rows.filter(function (r) { return r.status === currentFilter; });
+      if (!filtered.length) {
+        listEl.innerHTML = '<p class="empty">No feedback in this view yet.</p>';
+        return;
+      }
+      listEl.innerHTML = filtered.map(function (row) {
+        var when = new Date(row.created_at).toLocaleString();
+        var atts = (row.attachment_paths || []).map(function (url) {
+          return isImage(url)
+            ? '<a href="' + url + '" target="_blank" rel="noopener"><img src="' + url + '" alt="attachment" /></a>'
+            : '<a href="' + url + '" target="_blank" rel="noopener">📎 file</a>';
+        }).join('');
+        var reporter = [row.reporter_name, row.reporter_email].filter(Boolean).join(' · ');
+        return (
+          '<div class="issue" data-id="' + row.id + '">' +
+            '<div class="issue-head">' +
+              '<div>' +
+                '<div class="issue-meta">' + when + (row.page_section ? ' · ' + escapeHtml(row.page_section) : '') + '</div>' +
+                '<div class="issue-desc">' + escapeHtml(row.description) + '</div>' +
+                (reporter ? '<div class="issue-reporter">' + escapeHtml(reporter) + '</div>' : '') +
+              '</div>' +
+              '<span class="status-pill ' + row.status + '">' + STATUS_LABEL[row.status] + '</span>' +
+            '</div>' +
+            (atts ? '<div class="issue-atts">' + atts + '</div>' : '') +
+            '<div class="issue-actions">' +
+              '<select data-id="' + row.id + '">' +
+                Object.keys(STATUS_LABEL).map(function (k) {
+                  return '<option value="' + k + '"' + (k === row.status ? ' selected' : '') + '>' + STATUS_LABEL[k] + '</option>';
+                }).join('') +
+              '</select>' +
+              '<span class="save-note" data-note="' + row.id + '"></span>' +
+            '</div>' +
+          '</div>'
+        );
+      }).join('');
+
+      Array.prototype.slice.call(listEl.querySelectorAll('select')).forEach(function (sel) {
+        sel.addEventListener('change', function () {
+          var id = sel.dataset.id;
+          var note = listEl.querySelector('[data-note="' + id + '"]');
+          note.textContent = 'Saving…';
+          sb.from('feedback_issues')
+            .update({ status: sel.value, updated_at: new Date().toISOString() })
+            .eq('id', id)
+            .then(function (res) {
+              note.textContent = res.error ? 'Failed to save' : 'Saved';
+              setTimeout(function () { note.textContent = ''; }, 2000);
+            });
+        });
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    var allRows = [];
+    function loadIssues() {
+      listEl.innerHTML = '<p class="empty">Loading…</p>';
+      sb.from('feedback_issues').select('*').order('created_at', { ascending: false }).then(function (res) {
+        if (res.error) {
+          listEl.innerHTML = '<p class="empty">Failed to load: ' + escapeHtml(res.error.message) + '</p>';
+          return;
+        }
+        allRows = res.data || [];
+        render(allRows);
+      });
+    }
+
+    document.querySelectorAll('.filter-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('.filter-btn').forEach(function (b) { b.setAttribute('aria-selected', 'false'); });
+        btn.setAttribute('aria-selected', 'true');
+        currentFilter = btn.dataset.filter;
+        render(allRows);
+      });
+    });
+    document.getElementById('refreshBtn').addEventListener('click', loadIssues);
+  })();
+</script>
+</body>
+</html>

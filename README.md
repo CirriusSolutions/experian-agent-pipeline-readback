@@ -6,16 +6,28 @@ Pipeline engagement. Deployed via GitHub Pages, gated by Cloudflare Access (see 
 ## Contents
 
 - `index.html` — the readback: overview, discovery findings, target architecture,
-  user stories, demo walkthrough, what we need from Experian. Updated at each readback
-  session, not a one-time deck.
+  user stories, demo walkthrough, what we need from Experian, and a UAT Feedback tab.
+  Updated at each readback session, not a one-time deck.
 - `Experian - PoC Preview - CPQ Product.html` / `Experian - PoC Preview - Account LWC.html`
   — standalone Salesforce Lightning-style PoC mockups linked from the Demo Walkthrough tab.
+- `Experian - UAT Feedback Admin.html` — internal triage view for UAT feedback (passphrase-gated,
+  soft deterrent only — see note in that file). Not linked from the main nav; reachable only
+  by its direct URL. Sets each submission's status (open / resolved-working / N/A-out of scope).
+
+## UAT Feedback
+
+The readback page's "UAT Feedback" tab lets testers submit issues (with optional screenshots/docs)
+directly to a Supabase backend (project `zdonuvafqcviapusqwsv`) and see prior submissions and their
+status. Testers can add feedback but not change status — that's done via the admin page above.
+Setup SQL for the Supabase table/bucket/policies lives in Gavin's vault at
+`00 INBOX/Agent Task Outputs/Experian - UAT Feedback - Supabase Setup.sql`.
 
 ## Updating
 
-This repo is a deploy target, not the source of truth. The source file lives in Gavin's
-vault at `00 INBOX/Agent Task Outputs/Experian - BA Process Design Readback - 2026-08-10.html`.
-To publish an update, copy the current version of that file (and the two PoC preview files,
+This repo is a deploy target, not the source of truth. The source files live in Gavin's
+vault at `00 INBOX/Agent Task Outputs/Experian - BA Process Design Readback - 2026-08-10.html`
+and `00 INBOX/Agent Task Outputs/Experian - UAT Feedback Admin.html`.
+To publish an update, copy the current version of those files (and the two PoC preview files,
 if changed) over the matching files here and push to `main` — GitHub Pages redeploys
 automatically.
 

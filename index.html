@@ -171,6 +171,10 @@
     padding: 40px 56px 80px;
     max-width: 880px;
   }
+  .stage:has(> .panel[data-panel="3"]:not([hidden])),
+  .stage:has(> .panel[data-panel="7"]:not([hidden])) {
+    max-width: 1360px;
+  }
   .stage-header {
     padding-bottom: 24px;
     margin-bottom: 32px;
@@ -198,6 +202,8 @@
   .lede.muted, .note { color: var(--muted); font-size: 0.92rem; max-width: 64ch; }
 
   .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .cards .card.wide { grid-column: 1 / -1; }
+  .cards .card.wide ul { display: grid; grid-template-columns: 1fr 1fr; gap: 9px 24px; }
   .card {
     background: var(--surface);
     border: 1px solid var(--line);
@@ -282,7 +288,7 @@
   .arch-list strong { display: block; margin-bottom: 3px; }
 
   /* ---------- Swimlanes ---------- */
-  .swimlanes { display: grid; grid-template-columns: 90px 1fr 22px 1fr 22px 1fr; gap: 10px; align-items: stretch; }
+  .swimlanes { display: grid; grid-template-columns: 90px 1fr 1fr 1fr 1fr 1fr; gap: 10px; align-items: stretch; }
   .lane-arrow { display: flex; align-items: center; justify-content: center; color: var(--line-strong); font-size: 1.1rem; }
   .lane-arrow.down { padding: 2px 0; }
   .swimlanes .lane-head {
@@ -293,6 +299,7 @@
   .lane-head.cpq { color: var(--cpq); border-bottom-color: var(--cpq); }
   .lane-head.shared { color: var(--shared); border-bottom-color: var(--shared); }
   .lane-head.noncpq { color: var(--noncpq); border-bottom-color: var(--noncpq); }
+  .lane-head.skillscol { border-left: 1px dashed var(--line-strong); padding-left: 12px; }
   .lane-label {
     display: flex; align-items: center; font-size: 0.78rem; font-weight: 700;
     text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted);
@@ -300,9 +307,20 @@
   }
   .lane-label.muted { opacity: 0.55; }
   .lane-cell { min-height: 72px; display: flex; align-items: stretch; }
+  .lane-cell.skillscol { border-left: 1px dashed var(--line-strong); padding-left: 12px; }
   .lane-merge-note {
     grid-column: 1 / -1; text-align: center; font-size: 0.8rem; color: var(--muted);
     padding: 2px 0 6px;
+  }
+  .lane-delta {
+    width: 100%; font-size: 0.76rem; color: var(--ink); background: var(--surface);
+    border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
+    display: flex; align-items: center; line-height: 1.35;
+  }
+  .lane-delta.open { color: var(--muted); font-style: italic; border-style: dashed; }
+  .lane-na {
+    width: 100%; display: flex; align-items: center; justify-content: center;
+    color: var(--line-strong); font-size: 0.85rem;
   }
   .skilltile {
     width: 100%; text-align: left; background: var(--surface); border: 1px solid var(--line);
@@ -389,7 +407,11 @@
   .storycard.placeholder { cursor: default; }
   .storycard.placeholder:hover { border-color: var(--line); background: var(--surface); }
   .storycard.placeholder .story-text { color: var(--muted); }
-  .storycard.placeholder .story-maps .tag { margin-left: 6px; }
+  .story-maps .tag {
+    display: inline-flex; font-size: 0.72rem; padding: 2px 9px; border-radius: 999px;
+    border: 1px solid var(--line-strong); color: var(--muted); background: var(--paper);
+    margin-left: 6px; vertical-align: middle;
+  }
 
   /* ---------- Demo walkthrough ---------- */
   .subtabs { display: flex; gap: 6px; border-bottom: 1px solid var(--line); }
@@ -487,6 +509,46 @@
     border-radius: 999px;
     padding: 2px 9px;
   }
+  .flag.done {
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+  .flag.risk {
+    color: var(--muted);
+    background: transparent;
+    border: 1px dashed var(--line-strong);
+  }
+  .flag.selected {
+    color: #1a1200;
+    background: var(--accent);
+    border: none;
+  }
+  .decision-banner {
+    background: var(--accent-tint);
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  .decision-banner strong { color: var(--accent-strong); }
+
+  table.matrix { min-width: 1180px; }
+  table.matrix th, table.matrix td { padding: 12px 16px 12px 0; }
+  table.matrix th:first-child, table.matrix td:first-child {
+    width: 150px; padding-right: 12px;
+  }
+  table.matrix td:first-child {
+    font-weight: 700; font-size: 0.82rem; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.03em;
+  }
+  table.matrix .opt-head { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+  table.matrix .opt-head .opt-num {
+    font-size: 0.7rem; color: var(--accent-strong); font-weight: 700;
+  }
+  table.matrix td { font-size: 0.88rem; line-height: 1.45; }
+  table.matrix .col-muted { color: var(--muted); font-style: italic; }
 
   @media (max-width: 860px) {
     .app { flex-direction: column; }
@@ -501,6 +563,65 @@
     .lane-label { border-right: none; border-bottom: 1px solid var(--line); padding: 6px 0; }
     .detail-panel { width: 100%; }
   }
+
+  /* ---------- Feedback tab ---------- */
+  .fb-sub { color: var(--muted); font-size: 0.88rem; margin: -6px 0 4px; max-width: 64ch; }
+  .fb-form { max-width: 640px; display: flex; flex-direction: column; }
+  .fb-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .fb-field label {
+    font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.04em; color: var(--muted);
+  }
+  .fb-field textarea, .fb-field input[type="text"], .fb-field input[type="email"], .fb-field select {
+    font: inherit; font-size: 0.92rem; color: var(--ink); background: var(--surface);
+    border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; resize: vertical;
+  }
+  .fb-field textarea:focus, .fb-field input:focus, .fb-field select:focus {
+    outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent);
+  }
+  .fb-field input[type="file"] { font-size: 0.86rem; color: var(--muted); }
+  .fb-hint { font-size: 0.76rem; color: var(--muted); }
+  .fb-filelist { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+  .fb-fileitem {
+    font-size: 0.8rem; color: var(--ink); display: flex; align-items: center;
+    justify-content: space-between; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 6px; padding: 5px 9px;
+  }
+  .fb-fileitem button { border: none; background: none; color: var(--muted); cursor: pointer; font-size: 0.8rem; }
+  .fb-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
+  .fb-btn {
+    font: inherit; font-size: 0.9rem; font-weight: 700; border-radius: 8px;
+    padding: 10px 18px; cursor: pointer; border: 1px solid var(--line-strong);
+    background: var(--surface); color: var(--ink);
+  }
+  .fb-btn:hover { background: var(--line); }
+  .fb-btn.primary { background: var(--accent); border: none; color: #1a1200; }
+  .fb-btn.primary:hover { background: var(--accent-strong); color: #fff; }
+  .fb-btn:disabled { opacity: 0.5; cursor: default; }
+  .fb-status { font-size: 0.86rem; margin-top: 14px; border-radius: 8px; padding: 10px 12px; }
+  .fb-status.success { background: var(--accent-tint); color: var(--accent-strong); }
+  .fb-status.error { background: var(--noncpq-tint); color: var(--noncpq); }
+  .fb-status[hidden] { display: none; }
+
+  .fb-list { display: flex; flex-direction: column; gap: 12px; }
+  .fb-entry {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px 18px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .fb-entry-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .fb-entry-meta { font-size: 0.78rem; color: var(--muted); }
+  .fb-entry-desc { font-size: 0.92rem; line-height: 1.5; white-space: pre-wrap; }
+  .fb-entry-reporter { font-size: 0.8rem; color: var(--muted); }
+  .fb-entry-atts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .fb-entry-atts a {
+    display: inline-flex; align-items: center; font-size: 0.78rem; color: var(--accent-strong);
+    text-decoration: none; border: 1px solid var(--line-strong); border-radius: 6px; padding: 4px 9px;
+  }
+  .fb-entry-atts img {
+    width: 64px; height: 64px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line-strong);
+  }
+  .flag.na { color: var(--muted); background: var(--surface); border: 1px dashed var(--line-strong); }
+  .flag.inline { margin-top: 0; flex: 0 0 auto; }
 </style>
 </head>
 <body>
@@ -516,11 +637,13 @@
       <button class="tab" role="tab" aria-selected="false" data-panel="4"><span class="num">04</span> User stories</button>
       <button class="tab" role="tab" aria-selected="false" data-panel="5"><span class="num">05</span> Demo walkthrough</button>
       <button class="tab" role="tab" aria-selected="false" data-panel="6"><span class="num">06</span> What we need</button>
+      <button class="tab" role="tab" aria-selected="false" data-panel="7"><span class="num">07</span> Delivery options</button>
+      <button class="tab" role="tab" aria-selected="false" data-panel="8"><span class="num">08</span> UAT Feedback</button>
     </div>
     <div class="rail-footer">
       <strong>Cirrius Solutions</strong> × Experian<br />
       Prepared by Gavin Franklin<br />
-      Updated for: Mon Aug 10, 2026 session
+      Updated for: Tue Aug 11, 2026 readback session
     </div>
   </nav>
 
@@ -528,18 +651,18 @@
     <header class="stage-header">
       <div class="eyebrow">Living design document · updated at each readback</div>
       <h1>Agentic Salesforce Delivery Pipeline</h1>
-      <p class="meta">Cirrius: Gavin Franklin &nbsp;·&nbsp; Experian: James Weatherall, Mark Parysz, Sadar Yacob &nbsp;·&nbsp; Current phase: BA Process &nbsp;·&nbsp; This version: Aug 10, 2026</p>
+      <p class="meta">Cirrius: Gavin Franklin &nbsp;·&nbsp; Experian: James Weatherall, Mark Parysz, Sadar Yacob, Gary Sonnenthal &nbsp;·&nbsp; Current phase: BA Process &nbsp;·&nbsp; This version: Aug 31, 2026</p>
     </header>
 
     <section class="panel" data-panel="1">
       <h2>A living design document</h2>
       <p class="lede">This artifact tracks the Agentic Salesforce Delivery Pipeline end to end. It gets updated and reused at each readback across the engagement, it isn't rebuilt from scratch every session.</p>
-      <p class="lede muted">Current phase: the BA process, how a business requirement becomes a ready to groom user story. This phase covers both of Experian's discovery pipelines side by side, CPQ and non-CPQ, since both feed the same BA process. Later phases, story grooming, development, testing, deployment, get their own discovery sessions and land in this same document as they're designed.</p>
+      <p class="lede muted">Current phase: the BA process, how a business requirement becomes a ready to groom user story. This phase covers both of Experian's discovery pipelines side by side, CPQ and Salesforce Platform, since both feed the same BA process. Later phases, story grooming, development, testing, deployment, get their own discovery sessions and land in this same document as they're designed.</p>
     </section>
 
     <section class="panel" data-panel="2" hidden>
       <h2>What discovery showed us</h2>
-      <p class="lede muted">Two sessions, one shared problem underneath both.</p>
+      <p class="lede muted">Three sessions, one shared problem underneath all of them.</p>
       <div class="cards">
         <div class="card">
           <span class="chip">CPQ · Jul 27</span>
@@ -552,7 +675,7 @@
           </ul>
         </div>
         <div class="card">
-          <span class="chip">Non-CPQ · Jul 28</span>
+          <span class="chip">Salesforce Platform · Jul 28</span>
           <ul>
             <li>Cases flow through CRM Analyst triage, then a BA escalation gate, then a project or BAU split.</li>
             <li>Lucid and a legacy Excel "Disco doc" are the working discovery tools.</li>
@@ -560,154 +683,105 @@
             <li>All of it is manual copy paste into Salesforce today.</li>
           </ul>
         </div>
+        <div class="card wide">
+          <span class="chip">Dev &amp; deployment · Aug 18</span>
+          <ul>
+            <li>Local, SFDX-based development confirmed: a developer's agent builds a plan from the story and sandbox state, gets human sign-off, then implements and self-corrects — never touching production directly.</li>
+            <li>Real PoCs today are already HTML/CSS mockups with mock data and no live backend — exactly matching this pipeline's existing PoC pattern.</li>
+            <li>CPQ work starts from the config workbook and enters Salesforce as a case; product hierarchy records must exist in DRM before story development, roughly 80% of the time.</li>
+            <li>Salesforce confirmed as the single source of truth for every pipeline artifact — stories, PoCs, meeting notes, Lucid charts. SharePoint was explicitly avoided; Bitbucket never came up.</li>
+            <li>Agile Accelerator keeps ownership of conflict detection and promotion to UAT/production — the pipeline hands off cleanly rather than replacing that tooling.</li>
+            <li>Claude Code is the dominant dev tool today, already 80-90% adopted across the team, with Codex used by some for lower token cost.</li>
+          </ul>
+        </div>
       </div>
-      <p class="insight">Both sessions point at the same root problem: getting the right context in front of the right AI session. That's the hard part, not the AI itself.</p>
+      <p class="insight">All three sessions point at the same root problem: getting the right context in front of the right AI session. That's the hard part, not the AI itself.</p>
     </section>
 
     <section class="panel" data-panel="3" hidden>
       <h2>Target architecture</h2>
-      <p class="lede muted">Skills flowing from triage through discovery, story creation, PoC build, delivery, and deployment. CPQ and non-CPQ each run their own version through story creation and PoC build; development, testing, and deployment are shared. Triage through PoC Build are designed so far, click a tile for the detail.</p>
+      <p class="lede muted">The skills themselves are shared across all four paths — CPQ BAU, CPQ Project, Platform BAU, and Platform Project — but how each skill behaves differs by path. The fifth column shows the common, bare-bones skill; the four path columns show only what's different about running it there. Click any tile for the detail. Some path-specific cells are still open — marked as such, not guessed at.</p>
 
       <div class="swimlanes">
         <div></div>
-        <div class="lane-head cpq">CPQ</div>
-        <div></div>
-        <div class="lane-head shared">Shared</div>
-        <div></div>
-        <div class="lane-head noncpq">Non-CPQ</div>
+        <div class="lane-head cpq">CPQ BAU</div>
+        <div class="lane-head cpq">CPQ Project</div>
+        <div class="lane-head noncpq">Platform BAU</div>
+        <div class="lane-head noncpq">Platform Project</div>
+        <div class="lane-head shared skillscol">Skills (common)</div>
 
         <div class="lane-label">Triage</div>
-        <div class="lane-cell"></div>
-        <div class="lane-arrow"></div>
-        <div class="lane-cell"></div>
-        <div class="lane-arrow"></div>
-        <div class="lane-cell">
-          <button class="skilltile noncpq" data-skill="triage-skill" type="button">
+        <div class="lane-cell"><div class="lane-delta">Pulls the case plus the product configuration file — the config file is the main input driving the decision.</div></div>
+        <div class="lane-cell"><div class="lane-na">Not applicable — project work doesn't pass through this gate.</div></div>
+        <div class="lane-cell"><div class="lane-delta">Pulls the case and its attachments — no product config file here, so the decision leans on the case narrative instead.</div></div>
+        <div class="lane-cell"><div class="lane-na">Not applicable — project work doesn't pass through this gate.</div></div>
+        <div class="lane-cell skillscol">
+          <button class="skilltile shared" data-skill="triage-skill-common" type="button">
             <span class="tile-kind">Skill</span>
             <span class="tile-name">Case Triage Skill</span>
-            <span class="tile-overview">Decides whether a case needs a user story or stays a case.</span>
-          </button>
-        </div>
-
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div class="lane-arrow down">↓</div>
-
-        <div class="lane-label">Discovery</div>
-        <div class="lane-cell">
-          <button class="skilltile cpq" data-skill="cpq-skill" type="button">
-            <span class="tile-kind">Skill</span>
-            <span class="tile-name">CPQ Skill</span>
-            <span class="tile-overview">Parses the Excel config template into structured configuration data.</span>
-          </button>
-        </div>
-        <div class="lane-arrow"></div>
-        <div class="lane-cell"></div>
-        <div class="lane-arrow"></div>
-        <div class="lane-cell">
-          <button class="skilltile noncpq" data-skill="discovery-skill" type="button">
-            <span class="tile-kind">Skill</span>
-            <span class="tile-name">Discovery Skill</span>
-            <span class="tile-overview">Captures a case's requirements into structured data BAs can hand off.</span>
+            <span class="tile-overview">Decides whether an incoming case needs a formal user story, or can stay as-is.</span>
           </button>
         </div>
 
         <div></div>
         <div class="lane-arrow down">↓</div>
-        <div></div>
-        <div></div>
-        <div></div>
+        <div class="lane-arrow down">↓</div>
+        <div class="lane-arrow down">↓</div>
+        <div class="lane-arrow down">↓</div>
         <div class="lane-arrow down">↓</div>
 
-        <div class="lane-label">Story Creation</div>
-        <div class="lane-cell">
-          <button class="skilltile cpq" data-skill="cpq-user-story-skill" type="button">
+        <div class="lane-label">PoC</div>
+        <div class="lane-cell"><div class="lane-delta">Templated based on the product — the config file's structure drives a consistent, predictable layout.</div></div>
+        <div class="lane-cell"><div class="lane-delta">Same product-based templating. One of three possible entry points — can fire from the project, an epic, or a user story. From the project, it results in epics or stories being created; from an epic, it results in stories under that epic; fired directly from a story, it creates nothing new.</div></div>
+        <div class="lane-cell"><div class="lane-delta">Built from the case's own attachments (Lucid charts, disco notes) — less templated, shaped by whatever's on the case.</div></div>
+        <div class="lane-cell"><div class="lane-delta">One of three possible entry points — can fire from the project, an epic, or a user story. From the project, it results in epics or stories being created; from an epic, it results in stories under that epic; fired directly from a story, it creates nothing new.</div></div>
+        <div class="lane-cell skillscol">
+          <button class="skilltile shared" data-skill="poc-skill-common" type="button">
             <span class="tile-kind">Skill</span>
-            <span class="tile-name">CPQ User Story Generation Skill</span>
-            <span class="tile-overview">Turns structured config data into a Salesforce-standard story with acceptance criteria.</span>
-          </button>
-        </div>
-        <div class="lane-arrow"></div>
-        <div class="lane-cell"></div>
-        <div class="lane-arrow"></div>
-        <div class="lane-cell">
-          <button class="skilltile noncpq" data-skill="noncpq-user-story-skill" type="button">
-            <span class="tile-kind">Skill</span>
-            <span class="tile-name">Non-CPQ User Story Generation Skill</span>
-            <span class="tile-overview">Turns a structured requirement into a Salesforce-standard story with acceptance criteria.</span>
+            <span class="tile-name">PoC Skill</span>
+            <span class="tile-overview">Scaffolds a working, clickable mockup so stakeholders can react to something real early.</span>
           </button>
         </div>
 
         <div></div>
         <div class="lane-arrow down">↓</div>
-        <div></div>
-        <div></div>
-        <div></div>
+        <div class="lane-arrow down">↓</div>
+        <div class="lane-arrow down">↓</div>
+        <div class="lane-arrow down">↓</div>
         <div class="lane-arrow down">↓</div>
 
-        <div class="lane-label">PoC Build</div>
-        <div class="lane-cell">
-          <button class="skilltile cpq" data-skill="cpq-poc-skill" type="button">
+        <div class="lane-label">Grooming</div>
+        <div class="lane-cell"><div class="lane-delta">Gets a full grooming pass, same as every other path — the product's config structure doesn't exempt it.</div></div>
+        <div class="lane-cell"><div class="lane-delta">A full interactive pass, given epic-level complexity.</div></div>
+        <div class="lane-cell"><div class="lane-delta">Gets a full grooming pass, same as every other path.</div></div>
+        <div class="lane-cell"><div class="lane-delta">This is where project requirements actually get nailed down — an end-to-end, interactive walkthrough with the BA.</div></div>
+        <div class="lane-cell skillscol">
+          <button class="skilltile shared" data-skill="grooming-skill-common" type="button">
             <span class="tile-kind">Skill</span>
-            <span class="tile-name">CPQ PoC Skill</span>
-            <span class="tile-overview">Builds a working Salesforce CPQ product page from the finished story.</span>
-          </button>
-        </div>
-        <div class="lane-arrow"></div>
-        <div class="lane-cell"></div>
-        <div class="lane-arrow"></div>
-        <div class="lane-cell">
-          <button class="skilltile noncpq" data-skill="noncpq-poc-skill" type="button">
-            <span class="tile-kind">Skill</span>
-            <span class="tile-name">Non-CPQ PoC Skill</span>
-            <span class="tile-overview">Builds a working Lightning Web Component from the finished story.</span>
+            <span class="tile-name">Grooming Skill</span>
+            <span class="tile-overview">An interactive, BA-driven walkthrough that refines a story's requirements before development starts.</span>
           </button>
         </div>
 
-        <div class="lane-merge-note">Development, testing, and deployment are shared across both pipelines from here.</div>
-
-        <div></div>
-        <div></div>
         <div></div>
         <div class="lane-arrow down">↓</div>
-        <div></div>
-        <div></div>
+        <div class="lane-arrow down">↓</div>
+        <div class="lane-arrow down">↓</div>
+        <div class="lane-arrow down">↓</div>
+        <div class="lane-arrow down">↓</div>
 
-        <div class="lane-label muted">Delivery</div>
-        <div class="lane-cell"></div>
-        <div class="lane-arrow"></div>
-        <div class="lane-cell">
-          <div class="skilltile placeholder shared">
-            <span class="tile-kind">Not yet designed</span>
+        <div class="lane-label">Development &amp; Deployment</div>
+        <div class="lane-cell"><div class="lane-delta">CPQ stories follow a unique development path shaped by the story's own structure — the config workbook's layout drives how the change breaks down into components, unlike the standard SFDX flow on the Platform side. CPQ metadata (JS, calculator files, code fields) follows the same Agile Accelerator handoff as Platform; CPQ data (products, product configurations) is different — it deploys through Gearset, entirely outside this pipeline and permanently manual.</div></div>
+        <div class="lane-cell"><div class="lane-delta">Same as CPQ BAU: config-workbook-shaped development, and the same metadata-vs-data deployment split — metadata via the standard Agile Accelerator handoff, product/config data via Gearset, out of scope for this pipeline.</div></div>
+        <div class="lane-cell"><div class="lane-delta open">No lane-specific development differences confirmed yet — same SFDX/sandbox mechanism regardless of path. Standard Agile Accelerator handoff for deployment — no separate data-deployment path here, unlike CPQ.</div></div>
+        <div class="lane-cell"><div class="lane-delta open">No lane-specific development differences confirmed yet — same SFDX/sandbox mechanism regardless of path. Standard Agile Accelerator handoff for deployment — no separate data-deployment path here, unlike CPQ.</div></div>
+        <div class="lane-cell skillscol">
+          <button class="skilltile shared" data-skill="devtest-skill" type="button">
+            <span class="tile-kind">Skill</span>
             <span class="tile-name">Development &amp; Testing Skill</span>
-            <span class="tile-overview">Own discovery session.</span>
-          </div>
+            <span class="tile-overview">Builds a human-approved plan, implements and self-corrects in the dev sandbox via SFDX, tracks a deployment manifest as it goes, then — once approved — pushes toward production. No separate Deployment Skill; one skill covers both.</span>
+          </button>
         </div>
-        <div class="lane-arrow"></div>
-        <div class="lane-cell"></div>
-
-        <div></div>
-        <div></div>
-        <div></div>
-        <div class="lane-arrow down">↓</div>
-        <div></div>
-        <div></div>
-
-        <div class="lane-label muted">Deployment</div>
-        <div class="lane-cell"></div>
-        <div class="lane-arrow"></div>
-        <div class="lane-cell">
-          <div class="skilltile placeholder shared">
-            <span class="tile-kind">Not yet designed</span>
-            <span class="tile-name">Deployment Skill</span>
-            <span class="tile-overview">Own discovery session.</span>
-          </div>
-        </div>
-        <div class="lane-arrow"></div>
-        <div class="lane-cell"></div>
       </div>
     </section>
 
@@ -717,85 +791,70 @@
 
       <p class="section-label">CPQ pipeline</p>
       <div class="storylist">
-        <button class="storycard" data-skill="cpq-skill" type="button">
+        <button class="storycard" data-skill="triage-skill-common" type="button">
           <span class="chip lane-cpq">CPQ</span>
-          <p class="story-text">As a CPQ BA, I want an approved case's Excel config template parsed into structured data automatically, so I don't have to re-key it by hand.</p>
-          <p class="story-maps">Maps to: CPQ Skill</p>
+          <p class="story-text">As a CPQ BA, I want an incoming case checked against its product's configuration file automatically and, if it needs to move forward, the resulting user story created for me right then, so I'm not left wondering whether it needs a full PoC and story or can stay as a standard case.</p>
+          <p class="story-maps">Maps to: Case Triage Skill</p>
         </button>
 
-        <button class="storycard" data-skill="cpq-user-story-skill" type="button">
+        <button class="storycard" data-skill="poc-skill-common" type="button">
           <span class="chip lane-cpq">CPQ</span>
-          <p class="story-text">As a CPQ BA, I want a Salesforce-standard story with formal acceptance criteria drafted automatically from the structured config data, so it's ready for grooming without manual drafting.</p>
-          <p class="story-maps">Maps to: CPQ User Story Generation Skill</p>
+          <p class="story-text">As a stakeholder, I want a working CPQ product page scaffolded straight from the product's config template, so I can react to something real before a story is even written — and if I'm looking at a project or epic, I want to decide whether that creates the stories underneath it or just renders the mockup, not have it decided for me.</p>
+          <p class="story-maps">Maps to: PoC Skill</p>
         </button>
 
-        <button class="storycard" data-skill="cpq-poc-skill" type="button">
-          <span class="chip lane-cpq">CPQ</span>
-          <p class="story-text">As a stakeholder, I want a working CPQ product page scaffolded from a signed-off story, so I can react to something real before full development starts.</p>
-          <p class="story-maps">Maps to: CPQ PoC Skill</p>
-        </button>
       </div>
 
       <p class="section-label">Shared pipeline</p>
       <div class="storylist">
+        <button class="storycard" data-skill="grooming-skill-common" type="button">
+          <span class="chip lane-shared">Shared</span>
+          <p class="story-text">As a BA, I want an interactive walkthrough that refines a story's requirements before development starts, so nothing gets built against an under-specified ask — on every path, not just the ones where the gap is most obvious.</p>
+          <p class="story-maps">Maps to: Grooming Skill</p>
+        </button>
+
         <button class="storycard" data-skill="devtest-skill" type="button">
           <span class="chip lane-shared">Shared</span>
-          <p class="story-text">As a developer, I want the signed-off story's implementation built and automatically tested against its acceptance criteria, so it's ready for UAT without manual regression work.</p>
-          <p class="story-maps">Maps to: Development &amp; Testing Skill <span class="tag">directional, own session</span></p>
+          <p class="story-text">As a developer, I want the agent to build a plan from the story and my sandbox's current state, get my sign-off, then implement and self-correct against it, logging manifest items as it goes, so I can pick up or hand off a story without losing context — and, once I say the word, push that tracked manifest toward production without a separate handoff to another skill.</p>
+          <p class="story-maps">Maps to: Development &amp; Testing Skill</p>
         </button>
 
-        <button class="storycard" data-skill="deployment-skill" type="button">
-          <span class="chip lane-shared">Shared</span>
-          <p class="story-text">As a release manager, I want a tested change deployed to production through our existing CI/CD pipeline, so approved work reaches users without manual deployment steps.</p>
-          <p class="story-maps">Maps to: Deployment Skill <span class="tag">directional, own session</span></p>
-        </button>
       </div>
 
-      <p class="section-label">Non-CPQ pipeline</p>
+      <p class="section-label">Salesforce Platform pipeline</p>
       <div class="storylist">
-        <button class="storycard" data-skill="triage-skill" type="button">
-          <span class="chip lane-noncpq">Non-CPQ</span>
-          <p class="story-text">As a CRM Analyst, I want the pipeline to flag whether an incoming case needs BA involvement and a formal user story, or can stay with my team as a standard case, so I don't have to make that judgment call manually every time.</p>
+        <button class="storycard" data-skill="triage-skill-common" type="button">
+          <span class="chip lane-noncpq">Salesforce Platform</span>
+          <p class="story-text">As a CRM Analyst, I want the pipeline to decide whether an incoming case needs BA involvement and create the formal user story itself when it does, or leave it with my team as a standard case, so I don't have to make that judgment call manually every time.</p>
           <p class="story-maps">Maps to: Case Triage Skill</p>
         </button>
 
-        <button class="storycard" data-skill="discovery-skill" type="button">
-          <span class="chip lane-noncpq">Non-CPQ</span>
-          <p class="story-text">As a non-CPQ BA, I want my case's requirements captured from Disco docs, Lucid diagrams, and meeting transcripts into one structured requirement, so I have something clean to hand off.</p>
-          <p class="story-maps">Maps to: Discovery Skill</p>
+        <button class="storycard" data-skill="poc-skill-common" type="button">
+          <span class="chip lane-noncpq">Salesforce Platform</span>
+          <p class="story-text">As a stakeholder, I want a working mockup — LWC, flow, or whatever the story actually calls for — scaffolded from the case, project, or epic's own attachments, so I can react to something real before a story is even written, and choose whether that creates the stories underneath it or not.</p>
+          <p class="story-maps">Maps to: PoC Skill</p>
         </button>
 
-        <button class="storycard" data-skill="noncpq-user-story-skill" type="button">
-          <span class="chip lane-noncpq">Non-CPQ</span>
-          <p class="story-text">As a BA, I want a Salesforce-standard story with formal acceptance criteria drafted automatically from the structured requirement, so it's ready for grooming without manual drafting.</p>
-          <p class="story-maps">Maps to: Non-CPQ User Story Generation Skill</p>
-        </button>
-
-        <button class="storycard" data-skill="noncpq-poc-skill" type="button">
-          <span class="chip lane-noncpq">Non-CPQ</span>
-          <p class="story-text">As a stakeholder, I want a working Lightning Web Component scaffolded from a signed-off story, so I can react to something real before full development starts.</p>
-          <p class="story-maps">Maps to: Non-CPQ PoC Skill</p>
-        </button>
       </div>
 
       <p class="section-label">Foundation &amp; enablement</p>
       <div class="storylist">
-        <button class="storycard" data-skill="sharepoint-org" type="button">
-          <span class="chip lane-cpq">CPQ</span>
-          <p class="story-text">As a BA, I want each CPQ product's SharePoint folder organized with a consistent structure and named consistently by product, so the CPQ Skill can find and read it reliably every time.</p>
-          <p class="story-maps">Maps to: SharePoint Organization</p>
-        </button>
-
         <button class="storycard" data-skill="system-connections" type="button">
           <span class="chip">Foundation</span>
-          <p class="story-text">As an admin, I want Claude Code connected to Salesforce, SharePoint, and Bitbucket through CLI tools authenticated locally, so every skill reads and writes through the same connections instead of a one-off integration each time.</p>
+          <p class="story-text">As an admin, I want Claude Code connected to Salesforce through a CLI authenticated locally, so every skill reads and writes through the same connection instead of a one-off integration each time.</p>
           <p class="story-maps">Maps to: System Connections</p>
         </button>
 
         <button class="storycard" data-skill="poc-hosting" type="button">
           <span class="chip">Foundation</span>
-          <p class="story-text">As a stakeholder, I want to open a link and see the PoC rendered in my browser, so I don't have to check out a repo or ask a BA to screen-share it for me.</p>
+          <p class="story-text">As a stakeholder, I want the PoC sitting right on the story or case I'm already looking at, so I can download it myself and share it however's fastest, instead of it living in a separate system.</p>
           <p class="story-maps">Maps to: PoC Hosting</p>
+        </button>
+
+        <button class="storycard" data-skill="onboarding-skill" type="button">
+          <span class="chip">Foundation</span>
+          <p class="story-text">As a new team member, I want my machine set up for this pipeline in one guided pass — prerequisites, Salesforce's own official development tooling, and the pipeline's own skills — so I'm not piecing together install steps myself.</p>
+          <p class="story-maps">Maps to: Onboarding Skill</p>
         </button>
       </div>
     </section>
@@ -806,59 +865,36 @@
 
       <div class="subtabs" role="tablist" aria-label="Walkthrough pipeline">
         <button class="subtab" role="tab" aria-selected="true" data-sub="cpq" type="button">CPQ</button>
-        <button class="subtab" role="tab" aria-selected="false" data-sub="noncpq" type="button">Non-CPQ</button>
+        <button class="subtab" role="tab" aria-selected="false" data-sub="noncpq" type="button">Salesforce Platform</button>
       </div>
 
       <div class="subpanel" data-sub="cpq">
         <div class="datalifecycle">
           <div class="dl-phase">
             <span class="dl-label">Before the story</span>
-            <p>SharePoint holds everything for this product: prior meeting recordings, the config template, and the plan.md file.</p>
+            <p>Everything is tied to the case and its attached Salesforce Files: the Excel config template and prior meeting recordings, plus the case's own tracked history.</p>
           </div>
           <div class="dl-arrow">→</div>
           <div class="dl-phase">
             <span class="dl-label">After the story</span>
-            <p>Once the user story exists in Salesforce, all downstream work fetches from the story itself.</p>
+            <p>Once the user story exists in Salesforce, grooming and development take over from there.</p>
           </div>
         </div>
         <div class="steplist">
           <div class="stepcard">
             <div class="step-head">
               <span class="step-num">1</span>
-              <button class="chip lane-cpq skill-link" data-skill="cpq-skill" type="button">CPQ Skill</button>
+              <button class="chip lane-cpq skill-link" data-skill="triage-skill-common" type="button">Case Triage Skill</button>
             </div>
             <div class="step-prompt">
               <span class="output-label">Prompt</span>
-              <p>"Build the CPQ config for BusinessIQ - UK Credit Reports &amp; Images."</p>
-              <p class="step-command">or: <code>/cpq-skill BusinessIQ - UK Credit Reports &amp; Images</code></p>
+              <p>"Triage the case for BusinessIQ - UK Credit Reports &amp; Images."</p>
+              <p class="step-command">or: <code>/triage-skill BusinessIQ - UK Credit Reports &amp; Images</code></p>
             </div>
-            <p class="step-input"><strong>Retrieves:</strong> the product's SharePoint folder, located by name, holding the Excel config template, prior meeting recordings, and any existing plan.md file, with the template read against the standard CPQ config template doc</p>
+            <p class="step-input"><strong>Retrieves:</strong> the case and the product's configuration file, direct from Salesforce</p>
             <div class="step-output">
               <span class="output-label">Output</span>
-              <p>A structured, versioned config document, ready for the CPQ User Story Generation Skill.</p>
-            </div>
-            <div class="step-output">
-              <span class="output-label">Also produces</span>
-              <p>A plan.md file written back to that same SharePoint folder, tracked by multiple BAs across this product's configuration lifecycle. Updated, not replaced, each time someone touches this product, until the story exists.</p>
-            </div>
-          </div>
-
-          <div class="step-connector">↓</div>
-
-          <div class="stepcard">
-            <div class="step-head">
-              <span class="step-num">2</span>
-              <button class="chip lane-cpq skill-link" data-skill="cpq-user-story-skill" type="button">CPQ User Story Generation Skill</button>
-            </div>
-            <div class="step-prompt">
-              <span class="output-label">Prompt</span>
-              <p>"Write the user story for BusinessIQ - UK Credit Reports &amp; Images from the latest config plan."</p>
-              <p class="step-command">or: <code>/cpq-user-story-skill BusinessIQ - UK Credit Reports &amp; Images</code></p>
-            </div>
-            <p class="step-input"><strong>Retrieves:</strong> the CPQ Skill's structured config document and this product's plan.md file from SharePoint, and the standard user story template doc</p>
-            <div class="step-output">
-              <span class="output-label">Output</span>
-              <p>A Salesforce-standard user story, written directly into Agile Accelerator, with acceptance criteria attached and linked back to the plan.md file. Including: "Given a case configured with Commitment Type = Yes and Commitment Base = Volume, when the Risk Report is selected, then VADs appear as sub-options and CATO/CAI eligibility reflects the membership rules." A formal acceptance-criteria line the story doesn't have today.</p>
+              <p>A routing decision: escalate to PoC scaffolding and a formal story, or stay as a standard case. This walkthrough continues the escalate path.</p>
             </div>
           </div>
 
@@ -866,20 +902,43 @@
 
           <div class="stepcard highlight">
             <div class="step-head">
-              <span class="step-num">3</span>
+              <span class="step-num">2</span>
               <button class="chip lane-cpq skill-link" data-skill="cpq-poc-skill" type="button">CPQ PoC Skill</button>
             </div>
             <div class="step-prompt">
               <span class="output-label">Prompt</span>
-              <p>"Scaffold a PoC for BusinessIQ - UK Credit Reports &amp; Images from the signed-off story."</p>
+              <p>"Scaffold a PoC for BusinessIQ - UK Credit Reports &amp; Images."</p>
               <p class="step-command">or: <code>/cpq-poc-skill BusinessIQ - UK Credit Reports &amp; Images</code></p>
             </div>
-            <p class="step-input"><strong>Retrieves:</strong> the signed-off story from Step 2, direct from Salesforce</p>
+            <p class="step-input"><strong>Retrieves:</strong> the case's attached Salesforce Files — the Excel config template and prior meeting recordings, located directly on the case record — with the template read against the standard CPQ config template doc</p>
             <div class="step-output">
               <span class="output-label">Output</span>
-              <p>A working Salesforce CPQ product page reflecting the story's configuration.</p>
+              <p>A working Salesforce CPQ product page reflecting the config, plus a structured, versioned config document ready for the CPQ User Story Generation Skill.</p>
+            </div>
+            <div class="step-output">
+              <span class="output-label">Also produces</span>
+              <p>An appended entry on the case record's own tracked history, reflecting this product's configuration lifecycle across BAs. Updated, not replaced, each time someone touches this product, until the story exists.</p>
             </div>
             <a class="poc-link" href="Experian - PoC Preview - CPQ Product.html" target="_blank" rel="noopener">Open the CPQ PoC ↗</a>
+          </div>
+
+          <div class="step-connector">↓</div>
+
+          <div class="stepcard">
+            <div class="step-head">
+              <span class="step-num">3</span>
+              <button class="chip lane-cpq skill-link" data-skill="cpq-user-story-skill" type="button">CPQ User Story Generation Skill</button>
+            </div>
+            <div class="step-prompt">
+              <span class="output-label">Prompt</span>
+              <p>"Write the user story for BusinessIQ - UK Credit Reports &amp; Images from the PoC."</p>
+              <p class="step-command">or: <code>/cpq-user-story-skill BusinessIQ - UK Credit Reports &amp; Images</code></p>
+            </div>
+            <p class="step-input"><strong>Retrieves:</strong> the PoC Skill's structured config document, the case details, and the standard user story template doc</p>
+            <div class="step-output">
+              <span class="output-label">Output</span>
+              <p>A Salesforce-standard user story, written directly into Agile Accelerator, with acceptance criteria attached and linked back to the plan.md file. Including: "Given a case configured with Commitment Type = Yes and Commitment Base = Volume, when the Risk Report is selected, then VADs appear as sub-options and CATO/CAI eligibility reflects the membership rules." A formal acceptance-criteria line the story doesn't have today.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -893,14 +952,14 @@
           <div class="dl-arrow">→</div>
           <div class="dl-phase">
             <span class="dl-label">After the story</span>
-            <p>Once the user story exists in Salesforce, all downstream work fetches from the story itself.</p>
+            <p>Once the user story exists in Salesforce, grooming and development take over from there.</p>
           </div>
         </div>
         <div class="steplist">
           <div class="stepcard">
             <div class="step-head">
               <span class="step-num">1</span>
-              <button class="chip lane-noncpq skill-link" data-skill="triage-skill" type="button">Case Triage Skill</button>
+              <button class="chip lane-noncpq skill-link" data-skill="triage-skill-common" type="button">Case Triage Skill</button>
             </div>
             <div class="step-prompt">
               <span class="output-label">Prompt</span>
@@ -910,49 +969,7 @@
             <p class="step-input"><strong>Retrieves:</strong> the case record: request type, description, requested change</p>
             <div class="step-output">
               <span class="output-label">Output</span>
-              <p>A routing decision: escalate to a user story, or stay with the CRM Analyst as a standard case. This walkthrough continues the escalate path.</p>
-            </div>
-          </div>
-
-          <div class="step-connector">↓</div>
-
-          <div class="stepcard">
-            <div class="step-head">
-              <span class="step-num">2</span>
-              <button class="chip lane-noncpq skill-link" data-skill="discovery-skill" type="button">Discovery Skill</button>
-            </div>
-            <div class="step-prompt">
-              <span class="output-label">Prompt</span>
-              <p>"Capture requirements for CASE-04821."</p>
-              <p class="step-command">or: <code>/discovery-skill CASE-04821</code></p>
-            </div>
-            <p class="step-input"><strong>Retrieves:</strong> the case record itself, its meeting recording links, its supporting documentation links, Disco doc notes where used, and a Lucid diagram</p>
-            <div class="step-output">
-              <span class="output-label">Output</span>
-              <p>A structured requirement, ready for the Non-CPQ User Story Generation Skill: the affected object (Account), the requested capability, and the stakeholders involved.</p>
-            </div>
-            <div class="step-output">
-              <span class="output-label">Also produces</span>
-              <p>A plan.md file linked to the case record, tracked by multiple BAs across this case's lifecycle. Updated, not replaced, each time someone touches this case, until the story exists.</p>
-            </div>
-          </div>
-
-          <div class="step-connector">↓</div>
-
-          <div class="stepcard">
-            <div class="step-head">
-              <span class="step-num">3</span>
-              <button class="chip lane-noncpq skill-link" data-skill="noncpq-user-story-skill" type="button">Non-CPQ User Story Generation Skill</button>
-            </div>
-            <div class="step-prompt">
-              <span class="output-label">Prompt</span>
-              <p>"Write the user story for CASE-04821 from the latest plan."</p>
-              <p class="step-command">or: <code>/noncpq-user-story-skill CASE-04821</code></p>
-            </div>
-            <p class="step-input"><strong>Retrieves:</strong> the Discovery Skill's structured requirement and this case's plan.md file, and the standard user story template doc</p>
-            <div class="step-output">
-              <span class="output-label">Output</span>
-              <p>A Salesforce-standard user story, written directly into Agile Accelerator, with acceptance criteria attached and linked back to the plan.md file. Including: "As an Account Owner, I want to see open requirements linked to this account directly on the record page, so I don't have to search Cases separately. Acceptance Criteria: Given an Account with linked Cases in Requirement status, when the Account page loads, then a Requirement Tracker panel lists each linked Case with its current status."</p>
+              <p>A routing decision: escalate to PoC scaffolding and a formal story, or stay with the CRM Analyst as a standard case. This walkthrough continues the escalate path.</p>
             </div>
           </div>
 
@@ -960,20 +977,43 @@
 
           <div class="stepcard highlight">
             <div class="step-head">
-              <span class="step-num">4</span>
-              <button class="chip lane-noncpq skill-link" data-skill="noncpq-poc-skill" type="button">Non-CPQ PoC Skill</button>
+              <span class="step-num">2</span>
+              <button class="chip lane-noncpq skill-link" data-skill="noncpq-poc-skill" type="button">Salesforce Platform PoC Skill</button>
             </div>
             <div class="step-prompt">
               <span class="output-label">Prompt</span>
-              <p>"Scaffold a PoC for the Account Requirement Tracker from the signed-off story."</p>
+              <p>"Scaffold a PoC for the Account Requirement Tracker from CASE-04821."</p>
               <p class="step-command">or: <code>/noncpq-poc-skill CASE-04821</code></p>
             </div>
-            <p class="step-input"><strong>Retrieves:</strong> the signed-off story from Step 3, direct from Salesforce</p>
+            <p class="step-input"><strong>Retrieves:</strong> the case record itself, its meeting recording links, its supporting documentation links, Disco doc notes where used, and a Lucid diagram — less templated, shaped by whatever's on the case</p>
             <div class="step-output">
               <span class="output-label">Output</span>
-              <p>A working Lightning Web Component demonstrating the requested Account panel.</p>
+              <p>A working Lightning Web Component demonstrating the requested Account panel, plus a structured requirement ready for the Salesforce Platform User Story Generation Skill: the affected object (Account), the requested capability, and the stakeholders involved.</p>
+            </div>
+            <div class="step-output">
+              <span class="output-label">Also produces</span>
+              <p>A plan.md file linked to the case record, tracked by multiple BAs across this case's lifecycle. Updated, not replaced, each time someone touches this case, until the story exists.</p>
             </div>
             <a class="poc-link" href="Experian - PoC Preview - Account LWC.html" target="_blank" rel="noopener">Open the LWC PoC ↗</a>
+          </div>
+
+          <div class="step-connector">↓</div>
+
+          <div class="stepcard">
+            <div class="step-head">
+              <span class="step-num">3</span>
+              <button class="chip lane-noncpq skill-link" data-skill="noncpq-user-story-skill" type="button">Salesforce Platform User Story Generation Skill</button>
+            </div>
+            <div class="step-prompt">
+              <span class="output-label">Prompt</span>
+              <p>"Write the user story for CASE-04821 from the PoC."</p>
+              <p class="step-command">or: <code>/noncpq-user-story-skill CASE-04821</code></p>
+            </div>
+            <p class="step-input"><strong>Retrieves:</strong> the PoC Skill's structured requirement, the case details, and the standard user story template doc</p>
+            <div class="step-output">
+              <span class="output-label">Output</span>
+              <p>A Salesforce-standard user story, written directly into Agile Accelerator, with acceptance criteria attached and linked back to the plan.md file. Including: "As an Account Owner, I want to see open requirements linked to this account directly on the record page, so I don't have to search Cases separately. Acceptance Criteria: Given an Account with linked Cases in Requirement status, when the Account page loads, then a Requirement Tracker panel lists each linked Case with its current status."</p>
+            </div>
           </div>
         </div>
       </div>
@@ -990,24 +1030,19 @@
           </thead>
           <tbody>
             <tr>
-              <td>Salesforce production access</td>
-              <td>James, Mark</td>
-              <td>Needed to explore Agile Accelerator and agent interaction points</td>
-            </tr>
-            <tr>
               <td>Lucid access</td>
               <td>Mark</td>
               <td>Discovery process diagrams</td>
             </tr>
             <tr>
-              <td>Bitbucket repositories, CPQ and non-CPQ, for hosting PoC previews</td>
-              <td>Sadar, James</td>
-              <td>Bitbucket has no built-in Pages feature like GitHub, so this also needs a lightweight publish target (Azure Static Web Apps, S3, or similar) triggered from Bitbucket Pipelines or the existing Jenkins pipeline. See "PoC Hosting" in User Stories for the full mechanism.<br /><span class="flag">New ask</span></td>
+              <td>Local git CLI access to Bitbucket, if needed for the codebase itself</td>
+              <td>Sadar</td>
+              <td>No longer needed for PoC hosting. Still an open question for the actual Apex/LWC codebase — the 2026-08-18 session confirmed Salesforce as the source of truth for pipeline <em>artifacts</em>, but didn't explicitly cover the codebase itself. If it turns out to be needed, CLI-based access is still recommended over a hosted connector, matching the System Connections pattern.<br /><span class="flag risk">Confirming with Sadar</span></td>
             </tr>
             <tr>
-              <td>Local git CLI access to Bitbucket for each BA</td>
+              <td>Access to lower Salesforce sandboxes</td>
               <td>Sadar</td>
-              <td>Recommended over a SharePoint/Salesforce connector — same CLI-first pattern as Salesforce and SharePoint access, one local authenticated connection per system instead of a new hosted integration to build and secure<br /><span class="flag">New ask</span></td>
+              <td>Needed to continue building and testing the Development & Testing Skill against real dev-cycle conditions rather than Cirrius's own replica org<br /><span class="flag risk">Outstanding — blocking dev-cycle work</span></td>
             </tr>
           </tbody>
         </table>
@@ -1021,24 +1056,24 @@
           </thead>
           <tbody>
             <tr>
-              <td>SharePoint organized one folder per CPQ product</td>
-              <td>James, Mark</td>
-              <td>Config template, recordings, and plan.md live together per product, named consistently so the CPQ Skill can find it by product name</td>
-            </tr>
-            <tr>
-              <td>Non-CPQ resources linked directly to the Case</td>
+              <td>Salesforce Platform resources linked directly to the Case</td>
               <td>Mark, Ed</td>
               <td>Meeting recording links and supporting documentation links attached to the Case record itself, not a separate folder — this is what the Discovery Skill reads from</td>
             </tr>
             <tr>
-              <td>Sanitized CPQ config template example</td>
-              <td>James</td>
-              <td>Pricing redacted, real structure</td>
+              <td>Write-up: case types → required fields/information per type</td>
+              <td>Mark, James</td>
+              <td>The Case Grooming Skill routes each case by its Case Reason and enforces a different set of required fields per reason before the case can proceed. The mapping is built and working end to end today against placeholder reason values and placeholder fields — this write-up replaces the placeholders with Experian's real ones.<br /><span class="flag">New ask</span></td>
             </tr>
             <tr>
-              <td>Story lifecycle documentation</td>
-              <td>Miguel, via James</td>
-              <td>Statuses, ownership at each stage, data required to progress</td>
+              <td>Write-up: same mapping, for user stories</td>
+              <td>Mark, James</td>
+              <td>Same shape of requirement, one level up — which fields/information a user story needs before it's considered ready, by story type. Needed for the equivalent check in the User Story Generation Skill.<br /><span class="flag">New ask</span></td>
+            </tr>
+            <tr>
+              <td>Demo video of the real CPQ configurator in use</td>
+              <td>James</td>
+              <td>Needed to update the CPQ PoC Skill's output so it matches real configurator behavior rather than the current best-guess layout<br /><span class="flag">New ask</span></td>
             </tr>
           </tbody>
         </table>
@@ -1046,7 +1081,7 @@
 
       <p class="section-label">Backup tooling continuity (AgentForce Vibes)</p>
       <p>Sadar's team wants Claude Code as primary, with <strong>AgentForce Vibes</strong> — Salesforce's rebranded Einstein for Developers, also running on Claude Sonnet 4.5 under the hood — as a backup if Claude Code credits run out mid-month. Vibes' skill format (<code>.vibes/skills/</code>) is structurally close to Claude Code's, and it supports adding remote MCP servers the same way, so this pipeline's skill logic is likely portable. Bitbucket access isn't a concern either way — VS Code's native git works with any publicly reachable git remote.</p>
-      <p class="insight">The real risk isn't the tool surface, it's the network: Vibes only connects to resources reachable via an unrestricted public URL — it explicitly does not work behind a VPN or private network. If Experian's Bitbucket, SharePoint, or Lucid sit behind a corporate VPN or IP-allowlist, Vibes can't reach them as a fallback, regardless of MCP support. Worth confirming before this gets promised to the team as a real backup path.</p>
+      <p class="insight">The real risk isn't the tool surface, it's the network: Vibes only connects to resources reachable via an unrestricted public URL — it explicitly does not work behind a VPN or private network. If Experian's Bitbucket or Lucid sit behind a corporate VPN or IP-allowlist, Vibes can't reach them as a fallback, regardless of MCP support. If Vibes ends up running inside a VDI, it's already on Experian's internal network, so this constraint may not apply the same way — that needs an actual test once Vibes is provisioned, not an assumption either way. Worth confirming before this gets promised to the team as a real backup path.</p>
       <div class="table-wrap">
         <table class="asks">
           <thead>
@@ -1059,13 +1094,166 @@
               <td>Flex Credits (consumption pool) vs. a named-user Permission Set License — changes both cost exposure and whether new BAs can self-serve access<br /><span class="flag">New ask</span></td>
             </tr>
             <tr>
-              <td>Confirm Bitbucket, SharePoint, and Lucid are reachable via an unrestricted public URL</td>
+              <td>Confirm Bitbucket and Lucid are reachable via an unrestricted public URL</td>
               <td>Sadar, Mark</td>
-              <td>Vibes' remote-connection model (git remotes and MCP servers alike) requires public reachability — a VPN or private network on any of the three blocks Vibes from reaching it as a fallback<br /><span class="flag">New ask</span></td>
+              <td>Vibes' remote-connection model (git remotes and MCP servers alike) requires public reachability — a VPN or private network on either blocks Vibes from reaching it as a fallback<br /><span class="flag">New ask</span></td>
             </tr>
           </tbody>
         </table>
       </div>
+    </section>
+
+    <section class="panel" data-panel="7" hidden>
+      <h2>Skill distribution options</h2>
+      <p class="lede muted">Five ways to get finished skill files onto every developer's machine, compared side by side.
+      Experian is on Bitbucket, which rules out Claude's admin-console plugin sync — that mechanism only reads
+      through the Claude GitHub App or a GitHub Enterprise App, with no Bitbucket or GitLab equivalent. Experian
+      is confirmed on Claude <strong>Enterprise</strong>, which unlocks two of the options below that wouldn't
+      otherwise be available.</p>
+
+      <div class="decision-banner">
+        <strong>Decided — 2026-08-21, by Experian's own team.</strong> Richard Joseph and Pavankumar Chinnareddy
+        walked through this same comparison independently in the Agile Accelerator discovery session and selected
+        <strong>Option 5, Salesforce-hosted</strong>: skill content stored as long-text fields on custom Salesforce
+        objects, folder-structured and access-controlled, pulled at session start or when an agent connects to a
+        work item. Their own reasoning — agents work significantly better with structured, relational data than
+        flat files, and Salesforce's object model already fits that — validates rather than overrides the
+        comparison below. This is a real build Cirrius now owes (the actual Salesforce object model for skill
+        hosting), not a configuration change.
+      </div>
+
+      <p class="insight">The dimension that mattered most in getting here: does the option actually reach the local, sandbox-based
+      sessions this pipeline's developers run (SFDX against a dev sandbox, per-developer authentication)? One of
+      the five — Organization Skills — only reaches claude.ai chat, the Desktop app's Chat and Cowork tabs, and
+      cloud/Dispatch sessions. It doesn't reach a local session regardless of which interface opens it, which is
+      why it's ruled out here rather than left as a live option — and Experian's own team independently confirmed
+      the same finding from their side (their own GitHub-issue evidence matched Cirrius's research exactly).</p>
+
+      <div class="table-wrap">
+        <table class="asks matrix">
+          <thead>
+            <tr>
+              <th>Dimension</th>
+              <th><div class="opt-head"><span class="opt-num">OPTION 1</span>Managed skills file drop</div></th>
+              <th><div class="opt-head"><span class="opt-num">OPTION 2</span>Bitbucket + managed marketplace</div></th>
+              <th><div class="opt-head"><span class="opt-num">OPTION 3</span>Organization Skills<br /><span class="flag done">Ruled out</span></div></th>
+              <th><div class="opt-head"><span class="opt-num">OPTION 4</span>Bitbucket, periodic manual pull</div></th>
+              <th><div class="opt-head"><span class="opt-num">OPTION 5</span>Salesforce-hosted<br /><span class="flag selected">Selected — 2026-08-21</span></div></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Mechanism</td>
+              <td>IT pushes skill files to the OS-level managed-settings path via MDM (Jamf/Intune/Kandji/Group Policy) or the admin console/self-hosted gateway.</td>
+              <td>Marketplace repo on Bitbucket; <code>extraKnownMarketplaces</code> + <code>enabledPlugins</code> pushed via managed settings; a shared read-only token handles the git pull.</td>
+              <td>Admin uploads a <code>.zip</code> via Organization Settings → Skills in the Anthropic Console; syncs to each user's claude.ai account.</td>
+              <td><code>SKILL.md</code> files live in a Bitbucket repo; developers (or a script) run <code>git pull</code> periodically to refresh a local copy.</td>
+              <td>Skill content stored in Salesforce (custom object/attachment); a <code>SessionStart</code> hook pulls it via each developer's existing SFDX auth at session start.</td>
+            </tr>
+            <tr>
+              <td>Repo/host involved</td>
+              <td>None</td>
+              <td>Bitbucket — real git operations on each machine</td>
+              <td>None</td>
+              <td>Bitbucket</td>
+              <td>None — no git anywhere</td>
+            </tr>
+            <tr>
+              <td>Per-developer credentials</td>
+              <td>None</td>
+              <td>None individually — one shared, machine-level, read-only token</td>
+              <td>None (tied to claude.ai account / SSO)</td>
+              <td>Real Bitbucket read access, unless a shared script does the pull centrally</td>
+              <td>None new — reuses the SFDX auth every developer already has</td>
+            </tr>
+            <tr>
+              <td>Reaches local CLI / sandbox sessions</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td class="col-muted">No — only claude.ai chat, Desktop Chat/Cowork tabs, and cloud/Dispatch sessions</td>
+              <td>Yes, once pulled</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <td>Update mechanism</td>
+              <td>IT re-pushes via MDM; no Claude-side versioning</td>
+              <td>Real git versioning — <code>/plugin marketplace update</code> or background auto-update (needs an SSH key or the URL-rewrite token)</td>
+              <td class="col-muted">Admin re-uploads the zip</td>
+              <td>Manual — a person or a cron job has to remember to pull; nothing Claude-native</td>
+              <td>Live pull every session start; publish by editing the Salesforce record</td>
+            </tr>
+            <tr>
+              <td>Staleness / drift risk</td>
+              <td>Low — enterprise scope overrides local automatically</td>
+              <td>Low, if background auto-update is wired up</td>
+              <td class="col-muted">N/A — doesn't reach the workflow that matters</td>
+              <td><strong>Highest</strong> — the same staleness problem the plugin route was meant to solve in the first place</td>
+              <td>Low, contingent on the hook firing reliably every session</td>
+            </tr>
+            <tr>
+              <td>Security review flags</td>
+              <td>Cleanest — no credentials, no git anywhere</td>
+              <td>A plaintext, read-only token sitting in gitconfig on every machine</td>
+              <td class="col-muted">None</td>
+              <td>Same token exposure as Option 2 if centralized, worse if per-user personal Bitbucket access</td>
+              <td>New surface — a script with SFDX access running on every session start</td>
+            </tr>
+            <tr>
+              <td>Fit for this pipeline</td>
+              <td>Strong</td>
+              <td>Strong — best choice if real versioning matters</td>
+              <td class="col-muted">Poor — doesn't reach the workflow that matters here</td>
+              <td>Weak — same failure mode already flagged for the earlier SharePoint fallback</td>
+              <td>Elegant on architecture fit, but genuine engineering, not configuration</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="section-label">Notes</p>
+      <ul class="arch-list">
+        <li><strong>Options 1 and 3 require Claude Enterprise.</strong> Experian is confirmed on Enterprise, so both are actually available — this wasn't true before that confirmation.</li>
+        <li><strong>Option 3 isn't really a peer of the other four.</strong> It's kept in this matrix for completeness and contrast, not because it's a live candidate — it's confirmed not to reach the local, sandbox-based sessions this pipeline's developers actually run.</li>
+        <li><strong>Option 5 is a build, not a shipped Anthropic feature.</strong> It's architecturally elegant — skills live in the same system already confirmed as this pipeline's source of truth for every other artifact — but it means designing and owning a Salesforce object model, a sync mechanism, and its own security review, not configuring an existing capability. That build is now underway.</li>
+        <li><strong>The update mechanism is confirmed, not just proposed:</strong> skill content pulls at session start or the moment an agent connects to a work item — no separate sync schedule to manage.</li>
+      </ul>
+    </section>
+
+    <section class="panel" data-panel="8" hidden>
+      <h2>UAT Feedback</h2>
+      <p class="lede">Ran into something during testing? Log it here &mdash; screenshots or supporting docs help a lot. The Cirrius team reviews every submission below and marks it resolved or out of scope as we work through it.</p>
+
+      <form id="fbForm" class="fb-form">
+        <div class="fb-field">
+          <label for="fbDesc">What happened? *</label>
+          <textarea id="fbDesc" rows="4" required placeholder="Describe the issue you ran into, and what you expected instead."></textarea>
+        </div>
+        <div class="fb-field">
+          <label for="fbSection">Where in the app? (optional)</label>
+          <input type="text" id="fbSection" placeholder="e.g. Target architecture tab, CPQ swimlane">
+        </div>
+        <div class="fb-field">
+          <label for="fbName">Your name (optional)</label>
+          <input type="text" id="fbName" placeholder="So we can follow up if needed">
+        </div>
+        <div class="fb-field">
+          <label for="fbEmail">Your email (optional)</label>
+          <input type="email" id="fbEmail" placeholder="you@experian.com">
+        </div>
+        <div class="fb-field">
+          <label for="fbFiles">Screenshots or documents (optional)</label>
+          <input type="file" id="fbFiles" multiple accept="image/*,.pdf,.doc,.docx,.txt">
+          <div class="fb-filelist" id="fbFileList"></div>
+          <p class="fb-hint">Up to 5 files, 10MB each.</p>
+        </div>
+        <div class="fb-actions">
+          <button type="submit" class="fb-btn primary" id="fbSubmit">Submit feedback</button>
+        </div>
+        <p class="fb-status" id="fbStatus" hidden></p>
+      </form>
+
+      <p class="section-label">Submitted so far</p>
+      <div class="fb-list" id="fbList"><p class="note">Loading…</p></div>
     </section>
 
   </main>
@@ -1096,6 +1284,7 @@
   <p class="detail-needflag" id="detailNeed" hidden></p>
 </aside>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
 <script>
   (function () {
     var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
@@ -1119,87 +1308,84 @@
 
   (function () {
     var skillData = {
-      'cpq-skill': {
-        kind: 'Skill · CPQ lane',
-        lane: 'cpq',
-        name: 'CPQ Skill',
-        desc: "Takes a user's prompt naming a product, finds that product's SharePoint folder, and reads the Excel config template inside it against the standard CPQ config template doc. That folder holds everything for this product until the story exists: the template, prior meeting recordings, and a plan.md file. Turns it into a structured, versioned config document, plus an updated plan.md tracking the product's configuration lifecycle across BAs.",
-        trigger: 'A user prompts Claude with the product name, e.g. "Build the CPQ config for BusinessIQ - UK Credit Reports & Images," or runs the equivalent command: /cpq-skill BusinessIQ - UK Credit Reports & Images.',
-        inputs: [
-          'A user prompt naming the product',
-          "That product's SharePoint folder, located by name, holding the config template, prior meeting recordings, and any existing plan.md file",
-          'The standard CPQ config template doc'
-        ],
-        outputs: [
-          'A structured, versioned config document, ready to hand to the CPQ User Story Generation Skill',
-          "A plan.md file written back to that SharePoint folder, tracked by multiple BAs across the product's configuration lifecycle, until the story exists"
-        ],
-        touches: ['SharePoint CLI', 'Salesforce CLI (sf), DRM IDs'],
-        need: 'Needs a sanitized template example from James to validate against.'
-      },
-      'triage-skill': {
-        kind: 'Skill · Non-CPQ lane',
-        lane: 'noncpq',
+      'triage-skill-common': {
+        kind: 'Skill · Common to all 4 paths',
+        lane: 'shared',
         name: 'Case Triage Skill',
-        desc: "Reads an incoming case and applies Experian's case escalation framework, the same judgment call CRM Analysts make today: does this need BA involvement and a formal user story, or is it simple enough to stay a standard case handled directly. Runs before the Discovery Skill, so Discovery only kicks in on cases that actually need it. CPQ has no equivalent gate — it starts directly from the product's config template.",
-        trigger: 'A user prompts Claude with the case number, e.g. "Triage CASE-04821," or runs the equivalent command: /triage-skill CASE-04821.',
+        desc: "The bare-bones version of this skill, shared across every path that uses it: reads an incoming case and decides whether it needs a formal user story, or can stay as a standard case handled by the CRM team as-is. What changes by path is the main input it reads to make that call — see the CPQ BAU and Platform BAU columns for the specifics. CPQ Project and Platform Project skip this gate entirely; project work is already qualified by the time it reaches the pipeline.",
+        trigger: 'A new case is ready for review, e.g. "Does this case need a story?" or runs /triage-skill with the case reference.',
         inputs: [
-          'A user prompt naming the case',
-          'The case record: request type, description, requested change',
-          'Experian Case Escalation Framework.md'
+          'The case and its attachments — a Salesforce record, read directly rather than from any external system',
+          "Path-specific: CPQ BAU also reads the product's configuration file; Platform BAU relies on the case narrative alone"
         ],
         outputs: [
-          'A routing decision: escalate to the Discovery Skill for a user story, or stay with the CRM Analyst as a standard case, no story needed'
+          'A decision: escalate to a formal user story or stay a standard case — and, when escalating, the resulting Salesforce user story itself, created directly by this skill'
         ],
-        touches: ['Salesforce CLI (sf), case record'],
-        need: "Needs Experian's actual escalation criteria confirmed with Ed or Sarah Barber's team and turned into the Experian Case Escalation Framework.md reference doc. Today it's a judgment call CRM Analysts make case by case."
+        touches: ['Salesforce CLI (sf)'],
+        need: "Applies to the two BAU paths only. The two Project paths enter at PoC instead — see that skill."
       },
-      'discovery-skill': {
-        kind: 'Skill · Non-CPQ lane',
-        lane: 'noncpq',
-        name: 'Discovery Skill',
-        desc: "Takes a user's prompt naming a case, pulls the case record together with its meeting recording links, supporting documentation links, Disco doc notes where used, and Lucid diagrams, and turns it into one structured requirement, plus a plan.md file linked to the case that tracks its lifecycle across BAs. Everything here is tied to the case, not a SharePoint folder, which is what makes this messier and less standardized than the CPQ path.",
-        trigger: 'Once the Case Triage Skill flags a case for escalation, a user prompts Claude with the case number, e.g. "Capture requirements for CASE-04821," or runs the equivalent command: /discovery-skill CASE-04821.',
+      'poc-skill-common': {
+        kind: 'Skill · Common to all 4 paths',
+        lane: 'shared',
+        name: 'PoC Skill',
+        desc: "The bare-bones version of this skill: scaffolds a working, clickable mockup so a stakeholder can react to something real before a formal story or full development exists. For the two BAU paths it runs right after triage, off a case. For the two Project paths, it's more flexible: it can fire from a project, an epic, or a user story. Fired from a user story directly, it creates nothing new — the story already exists, so the PoC just attaches to it. Fired from a project or an epic, there are three legitimate outcomes, and which one happens is a conversation with the stakeholder, not something the skill decides on its own: associate the PoC with epics/stories that already exist underneath, create the new ones a story genuinely calls for, or create nothing at all and just render the mockup at the project/epic level.",
+        trigger: 'A user prompts Claude to build a PoC, naming a case, project, epic, or user story, e.g. "Build a PoC for this project," or runs /poc-skill with the reference.',
         inputs: [
-          'A user prompt naming the case',
-          'The case record itself, including its meeting recording links and supporting documentation links',
-          'Disco doc notes, where used',
-          'Lucid current and future state diagrams'
+          "Path-specific: CPQ paths read the product's configuration file; Platform paths read the case, project, epic, or story's own attachments (Lucid charts, disco notes, BRDs, transcripts)",
+          "For Project paths specifically: which level it's fired from — project, epic, or user story — since that determines what gets created next"
         ],
         outputs: [
-          'A structured requirement, ready to hand to the Non-CPQ User Story Generation Skill',
-          "A plan.md file linked to the case record, tracked by multiple BAs across the case's lifecycle, until the story exists"
+          'A working HTML/CSS mockup, attached directly to the case, project, epic, or story record',
+          "For the Project paths: the new (or associated existing) epic or user story itself, created directly by this skill — not handed off to a separate story-creation step. Unless fired directly from an existing user story, in which case there's nothing further to create"
         ],
-        touches: ['Salesforce CLI (sf), case links', 'Lucid', 'Teams recordings'],
-        need: "Non-CPQ intake is less standardized than CPQ's. What this skill normalizes to still needs its own discovery follow-up."
+        touches: ['Salesforce CLI (sf)'],
+        need: "CPQ's version is meant to be templated and predictable, product to product. Platform's version is shaped by whatever's attached to the case or project, so it's inherently less uniform — worth watching whether that makes Platform PoCs harder to keep consistent as volume grows."
+      },
+      'grooming-skill-common': {
+        kind: 'Skill · Common to all 4 paths (new)',
+        lane: 'shared',
+        name: 'Grooming Skill',
+        desc: "A new skill surfaced by the 2026-08-18 discovery session, not previously modeled: an interactive, BA-driven walkthrough that refines a story's requirements end to end before development starts. Only ever runs on a story that already exists — never a case, project, or epic directly. Runs as a full pass on every path — including both BAU paths, not just the two Project paths where the requirements-gathering need is most obvious.",
+        trigger: 'A user starts a grooming session on a story, e.g. "Groom this story with me," or runs /grooming-skill with the reference.',
+        inputs: [
+          'The story — created directly by Case Triage Skill (BAU) or PoC Skill (Project), not a separate story-creation step',
+          "The BA's own answers during the interactive walkthrough"
+        ],
+        outputs: [
+          'A refined story, ready to hand to the Development & Testing Skill'
+        ],
+        touches: ['Salesforce CLI (sf)'],
+        need: "Confirmed as a full pass on all four paths, per Gavin's direction — BAU's more templated, pre-structured input doesn't exempt it from this step."
       },
       'cpq-user-story-skill': {
         kind: 'Skill · CPQ lane',
         lane: 'cpq',
         name: 'CPQ User Story Generation Skill',
-        desc: "Takes a user's prompt, retrieves the CPQ Skill's structured config document and its plan.md file, drafts the story in the CPQ config-workbook format against the standard user story template doc, and writes it directly into Salesforce, with a formal acceptance-criteria section where today that's only implicit. Split from the non-CPQ path since the input shape and story format differ enough to warrant its own skill.",
-        trigger: 'A user prompts Claude to write the story, e.g. "Write the user story for BusinessIQ - UK Credit Reports & Images from the latest config plan," or runs /cpq-user-story-skill BusinessIQ - UK Credit Reports & Images.',
+        desc: "Takes a user's prompt, retrieves the CPQ PoC Skill's structured config document, the case details, and the case's own tracked history, drafts the story in the CPQ config-workbook format against the standard user story template doc, and writes it directly into Salesforce, with a formal acceptance-criteria section where today that's only implicit. Runs after the PoC, not before — one story per case, shaped by the product's config structure. Split from the Salesforce Platform path since the input shape and story format differ enough to warrant its own skill.",
+        trigger: 'A user prompts Claude to write the story, e.g. "Write the user story for BusinessIQ - UK Credit Reports & Images from the PoC," or runs /cpq-user-story-skill BusinessIQ - UK Credit Reports & Images.',
         inputs: [
           'A user prompt naming the product',
-          "The CPQ Skill's structured config document",
-          "That product's plan.md file",
+          "The CPQ PoC Skill's structured config document",
+          'The case details',
+          "That case's own tracked history",
           'The standard CPQ user story template doc'
         ],
         outputs: [
-          'A Salesforce-standard CPQ user story, written directly into Agile Accelerator, with acceptance criteria attached and linked back to the plan.md file'
+          'A Salesforce-standard CPQ user story, written directly into Agile Accelerator, with acceptance criteria attached and linked back to the case record'
         ],
-        touches: ['Agile Accelerator', 'SharePoint CLI', 'Salesforce CLI (sf), case link'],
+        touches: ['Agile Accelerator', 'Salesforce CLI (sf), case link'],
         need: 'Needs a decision on the formal acceptance-criteria standard, open question 3.'
       },
       'noncpq-user-story-skill': {
-        kind: 'Skill · Non-CPQ lane',
+        kind: 'Skill · Salesforce Platform lane',
         lane: 'noncpq',
-        name: 'Non-CPQ User Story Generation Skill',
-        desc: "Takes a user's prompt, retrieves the Discovery Skill's structured requirement and its plan.md file, drafts the story against the standard user story template doc, and writes it directly into Salesforce, with a formal acceptance-criteria section where today that's only implicit. Split from the CPQ path since the input shape and story format differ enough to warrant its own skill. This is the handoff point for this pipeline: once the story exists, everything downstream fetches from the story itself, not from the case.",
-        trigger: 'A user prompts Claude to write the story, e.g. "Write the user story for CASE-04821 from the latest plan," or runs /noncpq-user-story-skill CASE-04821.',
+        name: 'Salesforce Platform User Story Generation Skill',
+        desc: "Takes a user's prompt, retrieves the Salesforce Platform PoC Skill's structured requirement, the case details, and its plan.md file, drafts the story against the standard user story template doc, and writes it directly into Salesforce, with a formal acceptance-criteria section where today that's only implicit. Runs after the PoC, not before — one story per case. Split from the CPQ path since the input shape and story format differ enough to warrant its own skill. This is the handoff point for this pipeline: once the story exists, grooming and development take over from there.",
+        trigger: 'A user prompts Claude to write the story, e.g. "Write the user story for CASE-04821 from the PoC," or runs /noncpq-user-story-skill CASE-04821.',
         inputs: [
           'A user prompt naming the case',
-          "The Discovery Skill's structured requirement",
+          "The Salesforce Platform PoC Skill's structured requirement",
+          'The case details',
           "That case's plan.md file",
           'The standard user story template doc'
         ],
@@ -1213,115 +1399,108 @@
         kind: 'Skill · CPQ lane',
         lane: 'cpq',
         name: 'CPQ PoC Skill',
-        desc: "Takes a signed-off CPQ user story and scaffolds a working Salesforce CPQ product page reflecting the story's configuration, so the business can react to something real before full development starts. This is the CPQ-specific half of the SOW's Discovery & PoC Skill scaffolding piece.",
-        trigger: 'A user prompts Claude once the story is signed off, e.g. "Scaffold a PoC for BusinessIQ - UK Credit Reports & Images from the signed-off story," or runs /cpq-poc-skill BusinessIQ - UK Credit Reports & Images.',
+        desc: "Once the Case Triage Skill escalates a case, reads the Excel config template attached directly to that case as a Salesforce File against the standard CPQ config template doc, then scaffolds a working Salesforce CPQ product page reflecting that config — so the business can react to something real before a story is even written. Templated based on the product, since the config file's structure drives a consistent, predictable layout. Also produces the structured config document the CPQ User Story Generation Skill runs on next. This is the CPQ-specific half of the SOW's Discovery & PoC Skill scaffolding piece. Updated 2026-08-25: reads the config template and prior meeting recordings as Salesforce Files on the case record — SharePoint is no longer a source anywhere in this pipeline.",
+        trigger: 'A user prompts Claude once the case is triaged, e.g. "Scaffold a PoC for BusinessIQ - UK Credit Reports & Images," or runs /cpq-poc-skill BusinessIQ - UK Credit Reports & Images.',
         inputs: [
-          'The signed-off CPQ user story with acceptance criteria',
-          'Whatever CPQ context is needed to scaffold the PoC'
-        ],
-        outputs: [
-          'A working Salesforce CPQ product page demonstrating the story, ready for stakeholder review before full build'
-        ],
-        touches: ['Git / Bitbucket CLI', 'Salesforce CLI (sf), sandbox'],
-        need: 'Needs a real signed-off story to prototype against before this can be validated end to end.'
-      },
-      'noncpq-poc-skill': {
-        kind: 'Skill · Non-CPQ lane',
-        lane: 'noncpq',
-        name: 'Non-CPQ PoC Skill',
-        desc: "Takes a signed-off non-CPQ user story and scaffolds a working Lightning Web Component demonstrating the requested capability, so the business can react to something real before full development starts. This is the non-CPQ-specific half of the SOW's Discovery & PoC Skill scaffolding piece.",
-        trigger: 'A user prompts Claude once the story is signed off, e.g. "Scaffold a PoC for the Account Requirement Tracker from the signed-off story," or runs /noncpq-poc-skill CASE-04821.',
-        inputs: [
-          'The signed-off non-CPQ user story with acceptance criteria',
-          'Whatever Salesforce context is needed to scaffold the PoC'
-        ],
-        outputs: [
-          'A working Lightning Web Component demonstrating the story, ready for stakeholder review before full build'
-        ],
-        touches: ['Git / Bitbucket CLI', 'Salesforce CLI (sf), sandbox'],
-        need: 'Needs a real signed-off story to prototype against before this can be validated end to end.'
-      },
-      'devtest-skill': {
-        kind: 'Skill · Shared lane (directional)',
-        lane: 'shared',
-        name: 'Development & Testing Skill',
-        desc: "Builds the signed-off story's implementation and runs it against the story's acceptance criteria automatically, catching regressions before the change reaches UAT. Not yet discovery-backed, this is a directional placeholder for its own future session.",
-        trigger: 'A user prompts Claude once a story is groomed and assigned, e.g. "Build and test the story for BusinessIQ - UK Credit Reports & Images," or runs /devtest-skill with the story reference.',
-        inputs: [
-          'The groomed, sprint-assigned user story',
-          'The existing Apex/LWC or declarative patterns this change should follow'
-        ],
-        outputs: [
-          'A built change with automated test coverage against the acceptance criteria, marked ready for UAT'
-        ],
-        touches: ['Salesforce CLI (sf)', 'Git / Bitbucket CLI'],
-        need: 'Not yet discovery-backed. Needs its own session to confirm Experian\'s actual build, test, and branching conventions before this is more than directional.'
-      },
-      'deployment-skill': {
-        kind: 'Skill · Shared lane (directional)',
-        lane: 'shared',
-        name: 'Deployment Skill',
-        desc: "Takes a tested change and deploys it to production through Experian's existing CI/CD pipeline (Gearset for CPQ data, Jenkins for CRM metadata), so approved work ships without manual steps. Not yet discovery-backed, this is a directional placeholder for its own future session.",
-        trigger: 'A user prompts Claude once a change passes UAT sign-off, e.g. "Deploy the BusinessIQ - UK Credit Reports & Images change to production," or runs /deployment-skill with the story reference.',
-        inputs: [
-          'The UAT-signed-off change',
-          'The target deployment pipeline: Gearset for CPQ data, Jenkins/CI-CD for CRM metadata'
-        ],
-        outputs: [
-          'The change deployed to production, with the story marked deployed'
-        ],
-        touches: ['Salesforce CLI (sf)', 'Gearset', 'Jenkins / CI-CD'],
-        need: 'Not yet discovery-backed. Needs its own session to confirm deployment ownership and approval gates before this is more than directional.'
-      },
-      'sharepoint-org': {
-        kind: 'Setup · CPQ lane',
-        lane: 'cpq',
-        name: 'SharePoint Organization',
-        desc: "Defines the folder structure and naming convention for each CPQ product's SharePoint folder, so the CPQ Skill can find it by product name and read it reliably every time. A one-time setup per product, not a per-run skill.",
-        trigger: 'Set up once per product, when a new CPQ product is onboarded into the pipeline, e.g. "Set up the SharePoint folder for BusinessIQ - UK Credit Reports & Images."',
-        inputs: [
-          'The product name',
+          "The case's attached Salesforce Files — the config template and prior meeting recordings, located directly on the case record",
           'The standard CPQ config template doc'
         ],
         outputs: [
-          'A SharePoint folder named consistently by product, with defined sub-locations for the config template, prior meeting recordings, and the plan.md file'
+          'A working Salesforce CPQ product page reflecting the config, ready for stakeholder review before a story is written',
+          'A structured, versioned config document, ready for the CPQ User Story Generation Skill',
+          "An appended entry on the case record's own tracked history, reflecting the product's configuration lifecycle across BAs until the story exists"
         ],
-        touches: ['SharePoint CLI'],
-        need: 'Needs the folder-naming convention confirmed with James, and confirmation this is a one-time setup rather than something re-run per session.'
+        touches: ['Salesforce CLI (sf), Files', 'Salesforce CLI (sf), DRM IDs', 'Salesforce CLI (sf), sandbox'],
+        need: "Product hierarchy records need to exist in DRM and Salesforce production before story creation, most of the time — the CPQ PoC Skill should check for this and flag it clearly (not silently block) when records are missing or placeholder."
+      },
+      'noncpq-poc-skill': {
+        kind: 'Skill · Salesforce Platform lane',
+        lane: 'noncpq',
+        name: 'Salesforce Platform PoC Skill',
+        desc: "Once the Case Triage Skill escalates a case, pulls the case record together with its meeting recording links, supporting documentation links, Disco doc notes where used, and Lucid diagrams, and scaffolds a working Lightning Web Component demonstrating the requested capability — so the business can react to something real before a story is even written. Less templated than the CPQ path, shaped by whatever's actually on the case. Also produces the structured requirement the Salesforce Platform User Story Generation Skill runs on next. This is the Salesforce Platform-specific half of the SOW's Discovery & PoC Skill scaffolding piece.",
+        trigger: 'A user prompts Claude once the case is triaged, e.g. "Scaffold a PoC for the Account Requirement Tracker from CASE-04821," or runs /noncpq-poc-skill CASE-04821.',
+        inputs: [
+          'The case record itself, including its meeting recording links and supporting documentation links',
+          'Disco doc notes, where used',
+          'Lucid current and future state diagrams'
+        ],
+        outputs: [
+          'A working Lightning Web Component demonstrating the requested capability, ready for stakeholder review before a story is written',
+          'A structured requirement, ready to hand to the Salesforce Platform User Story Generation Skill',
+          "A plan.md file linked to the case record, tracked by multiple BAs across the case's lifecycle, until the story exists"
+        ],
+        touches: ['Salesforce CLI (sf), case links', 'Lucid', 'Teams recordings', 'Salesforce CLI (sf), sandbox'],
+        need: "Salesforce Platform intake is less standardized than CPQ's. What this skill normalizes to still needs its own discovery follow-up."
+      },
+      'devtest-skill': {
+        kind: 'Skill · Shared lane',
+        lane: 'shared',
+        name: 'Development & Testing Skill',
+        desc: "A developer opens the agent locally (Claude Code). It first confirms, separately and explicitly, which authenticated org is Agile Accelerator itself — where the story and its data live — and which is the actual dev sandbox the change gets built into; these are never assumed to be the same org. It then points at a story to start or continue, reads the story's fields and attachments plus the current state of the dev sandbox, and checks whether Salesforce's own official development plugin is available — when it is, Apex, Flows, fields, and Lightning pages are drafted through that real, Salesforce-maintained tooling rather than the agent's own judgment alone; either way, the same quality bar applies, and field-level security is never left ungranted regardless of what generated a field. It builds a development plan from all of this — then stops for the developer to review and approve it before any build begins. Once approved, it implements the change via SFDX, self-correcting as it goes, and adds entries to the Item Manifest as components are touched — Agile Accelerator's own junction between a metadata component and the story. A plan file tracks progress throughout, so the story can be picked up or handed off mid-stream by anyone. There's no separate Deployment Skill: once the developer confirms the work is ready and gives a second, standalone approval specifically for the push (never combined with the dev-build approval), this same skill sets the story to \"Dev Complete\" itself — a deliberate, explicit permission step, not a silent status flip. That status change is what actually triggers Agile Accelerator's own pre-existing automated pipeline: it retrieves the versioned components from the dev sandbox and pushes them to a work branch in Bitbucket automatically, with no developer or agent ever touching Bitbucket directly. Conflict detection, UAT, and promotion to production all stay fully inside Agile Accelerator's existing process, unchanged — this skill's job is to hand it an accurate, complete manifest, not to reimplement any of it. It never resolves or connects to a production/target org directly either — that stays entirely Agile Accelerator's job once it has that manifest.",
+        trigger: 'A developer opens Claude Code and names a story, e.g. "Continue the story for BusinessIQ - UK Credit Reports & Images," or runs /devtest-skill with the story reference.',
+        inputs: [
+          'The user story and its attachments',
+          'Two separately-confirmed orgs: Agile Accelerator itself, and the dev sandbox',
+          "Whether Salesforce's official development plugin is available",
+          'A prior plan file, if the story is already in progress'
+        ],
+        outputs: [
+          'A development plan, shown to the developer for approval before any build starts',
+          'The implemented change in the dev sandbox, with a plan file tracking progress attached to the story',
+          'Item Manifest entries logged to Agile Accelerator as components are touched, via API/CLI',
+          'With a second, standalone approval: the story set to "Dev Complete," handing off to Agile Accelerator\'s own automated pipeline — versioning to Bitbucket, conflict detection, and promotion through UAT to production'
+        ],
+        touches: ['Claude Code (local)', 'Salesforce CLI (sf/SFDX)', 'Dev sandbox', 'Agile Accelerator (Manifest Item / Metadata Component objects)', "Salesforce's official development plugin (when available)"],
+        need: "Never touches Bitbucket, UAT, or production directly — Agile Accelerator's own automation owns all of that once \"Dev Complete\" is set; each developer authenticates as themselves via SFDX, by design, not through a shared service account. The real open risk, confirmed at the 2026-08-21 Agile Accelerator session: creating Item Manifest entries via API/CLI instead of Agile Accelerator's own UI may not trigger the same downstream AWS-hosted conflict-check and integration-dependency functions the UI triggers — untested, unconfirmed feature parity. Richard Joseph and Pavankumar Chinnareddy are testing this end to end. Until confirmed, treat API-based manifest creation as a \"nice to have\" — conflict, integration-dependency, and permission-set review stay human-in-the-loop regardless. Salesforce's own official development plugin is a real, verified Salesforce product, but young (about a month old as of this writing) and changing fast — treated as a preferred enhancement when available, never a hard dependency this skill can't function without. One permanent boundary: CPQ data deployments (products, product configurations) go through Gearset instead, entirely outside this skill and fully manual, by design."
       },
       'system-connections': {
         kind: 'Foundation',
         lane: 'shared',
         name: 'System Connections',
-        desc: "Connects Claude Code's local instance to Salesforce, SharePoint, and Bitbucket through CLI tools authenticated on the machine it runs on, rather than a separate hosted integration per system. Every skill above reuses these same local connections instead of authenticating on its own. CLI-first by design: the same pattern Cirrius uses internally, favoring an authenticated local tool over a one-off hosted app per system.",
-        trigger: 'Set up once per machine, when a BA or admin installs Claude Code locally, e.g. "Connect Claude Code to Salesforce, SharePoint, and Bitbucket."',
+        desc: "Connects Claude Code's local instance to Salesforce through a CLI authenticated on the machine it runs on, rather than a separate hosted integration. Every skill above reuses this same local connection instead of authenticating on its own. CLI-first by design: the same pattern Cirrius uses internally, favoring an authenticated local tool over a one-off hosted app. Updated 2026-08-25: SharePoint dropped entirely — CPQ config templates, recordings, and every other document now live in Salesforce (Files attached directly to the case), not a separate SharePoint folder, so there's no second CLI to authenticate.",
+        trigger: 'Set up once per machine, when a BA or admin installs Claude Code locally, e.g. "Connect Claude Code to Salesforce."',
         inputs: [
-          'Salesforce CLI (sf), authenticated to the org',
-          'A SharePoint / Graph CLI, authenticated to the tenant',
-          'Git CLI, authenticated to Bitbucket'
+          'Salesforce CLI (sf), authenticated to the org'
         ],
         outputs: [
-          'A local Claude Code instance that can shell out to sf, the SharePoint CLI, and git directly, so every skill reads and writes through the same authenticated sessions'
+          'A local Claude Code instance that can shell out to sf directly, so every skill reads and writes through the same authenticated session'
         ],
-        touches: ['Salesforce CLI (sf)', 'SharePoint / Graph CLI', 'Git / Bitbucket CLI'],
-        need: 'Needs confirmation of which SharePoint CLI or Graph-based tool Experian standardizes on, and who owns provisioning local CLI credentials for each BA.'
+        touches: ['Salesforce CLI (sf)'],
+        need: "Needs confirmation of who owns provisioning local CLI credentials for each BA. Bitbucket CLI access is deliberately not listed here either — the 2026-08-21 session confirmed the agent never touches Bitbucket directly; Agile Accelerator's own automation handles that once a story is marked \"Dev Complete.\""
       },
       'poc-hosting': {
         kind: 'Foundation',
         lane: 'shared',
         name: 'PoC Hosting',
-        desc: "Bitbucket has no built-in equivalent to GitHub Pages, so a PoC pushed to a Bitbucket repo isn't viewable as a rendered page on its own. This closes that gap: a pipeline (Bitbucket Pipelines, or Experian's existing Jenkins) builds the PoC and publishes it to a lightweight static host, so stakeholders get a link that just opens in a browser, not a repo they have to check out. Separate repos for CPQ and non-CPQ, matching the two pipelines.",
-        trigger: 'Runs automatically when a PoC Skill pushes a new or updated PoC to its Bitbucket repo. No separate user action once the pipeline is set up.',
+        desc: "Confirmed, per Gavin's direction: Bitbucket/GitHub-style external hosting is a poor fit for this client specifically — they want a quick, informal way to share demos, not a maintained site. Since every PoC is a single, self-contained HTML/CSS/JS file (no build step, no server dependency), it's hosted as a Salesforce File attached directly to the story (and case/epic/project, if that's where it was launched from) — the same way the plan file already does. No Cloudflare, no separate hosting pipeline, no static site to stand up and maintain.",
+        trigger: 'Runs automatically when PoC Skill finishes a PoC, uploading the finished HTML file and linking it to the story (and case/epic/project, if applicable).',
         inputs: [
-          "The CPQ PoC Skill's or Non-CPQ PoC Skill's output, pushed to its Bitbucket repo",
-          "A publish pipeline: Bitbucket Pipelines, or Experian's existing Jenkins CI/CD",
-          'A static hosting target: Azure Static Web Apps, S3, or an equivalent Experian already has'
+          "PoC Skill's finished HTML/CSS/JS output"
         ],
         outputs: [
-          'A stable link per PoC that renders directly in a browser, ready to share with stakeholders'
+          'The PoC HTML file uploaded as a Salesforce File, linked to every relevant record, with a stable link (not a session-token URL) written to the story\'s PoC Link field so anyone logged into the org can open the File record and download it'
         ],
-        touches: ['Git / Bitbucket CLI', 'Bitbucket Pipelines or Jenkins', 'A static hosting target'],
-        need: "Needs Experian to confirm what static hosting target already exists or is easiest to stand up, and whether Bitbucket Pipelines or the existing Jenkins pipeline should own the publish step. Recommend CLI-based Bitbucket access for each BA over a SharePoint/Salesforce connector, matching the System Connections pattern rather than introducing a second connection model."
+        touches: ['Salesforce CLI (sf)'],
+        need: "Resolved, not open: a Salesforce File's own preview doesn't execute the interactive HTML/CSS/JS live — it's a document viewer, not a browser. That's fine for how this is actually meant to be used: download the File, open it locally, then share it however's fastest — email, Slack, screen share — which is exactly the quick, low-ceremony path this client wants for demos, not a limitation to work around."
+      },
+      'onboarding-skill': {
+        kind: 'Foundation',
+        lane: 'shared',
+        name: 'Onboarding Skill',
+        desc: "Sets up a new user's machine — Mac or Windows — to run this pipeline's skills: checks and installs Node.js, Python, git, and the Salesforce CLI; installs Salesforce's own official development plugin for Claude Code; authenticates to Salesforce; and downloads the pipeline's shared conventions plus whichever skills that person actually needs (not every role needs Development Skill) onto their machine. Can't install Claude Code itself — it's a Claude Code skill, so Claude Code already has to be running for it to work at all — that one step stays a one-time manual action outside the skill, not something it can bootstrap.",
+        trigger: 'A new team member or admin runs it once when setting up a machine, e.g. "Set up my machine for this pipeline," or runs /onboarding-skill.',
+        inputs: [
+          'Which OS the machine is running',
+          'Which of the pipeline skills this person actually needs'
+        ],
+        outputs: [
+          'Node.js, Python, git, and the Salesforce CLI confirmed installed',
+          "Salesforce's official development plugin installed and verified enabled",
+          'An authenticated Salesforce session, with the Agile Accelerator org explicitly confirmed',
+          'The shared conventions and chosen pipeline skills downloaded to the local machine'
+        ],
+        touches: ['Salesforce CLI (sf)', 'Claude Code plugin marketplace'],
+        need: "Every install step still asks before running, the same standard the rest of this package holds every write to — nothing installs or downloads silently. Same open dependency as the rest of this build: needs normal internet/registry access to reach the plugin marketplace, which is the same VDI network-access question already open elsewhere."
       }
     };
 
@@ -1373,6 +1552,164 @@
           subtabs.forEach(function (b, j) { b.setAttribute('aria-selected', i === j ? 'true' : 'false'); });
           panels.forEach(function (p, j) { if (i === j) { p.removeAttribute('hidden'); } else { p.setAttribute('hidden', ''); } });
         });
+      });
+    });
+  })();
+
+  (function () {
+    var SUPABASE_URL = 'https://zdonuvafqcviapusqwsv.supabase.co';
+    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpkb251dmFmcWN2aWFwdXNxd3N2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk1ODY3NjMsImV4cCI6MjEwNTE2Mjc2M30.ausrW2sD-5UCK7GyO809m6ChcMrpC7pD-7M8rBDa9yE';
+    var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    var form = document.getElementById('fbForm');
+    var filesInput = document.getElementById('fbFiles');
+    var fileListEl = document.getElementById('fbFileList');
+    var statusEl = document.getElementById('fbStatus');
+    var submitBtn = document.getElementById('fbSubmit');
+    var listEl = document.getElementById('fbList');
+    var selectedFiles = [];
+    var MAX_FILES = 5;
+    var MAX_SIZE = 10 * 1024 * 1024;
+
+    var STATUS_LABEL = {
+      open: 'Open',
+      resolved_working: 'Resolved / working',
+      not_applicable_out_of_scope: 'N/A / out of scope'
+    };
+    var STATUS_FLAG_CLASS = {
+      open: 'flag',
+      resolved_working: 'flag done',
+      not_applicable_out_of_scope: 'flag na'
+    };
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    function isImage(url) { return /\.(png|jpe?g|gif|webp|svg)$/i.test(url); }
+
+    function renderList(rows) {
+      if (!rows.length) {
+        listEl.innerHTML = '<p class="note">No feedback submitted yet — be the first.</p>';
+        return;
+      }
+      listEl.innerHTML = rows.map(function (row) {
+        var when = new Date(row.created_at).toLocaleString();
+        var atts = (row.attachment_paths || []).map(function (url) {
+          return isImage(url)
+            ? '<a href="' + url + '" target="_blank" rel="noopener"><img src="' + url + '" alt="attachment" /></a>'
+            : '<a href="' + url + '" target="_blank" rel="noopener">📎 file</a>';
+        }).join('');
+        var reporter = [row.reporter_name, row.reporter_email].filter(Boolean).join(' · ');
+        var flagClass = STATUS_FLAG_CLASS[row.status] || 'flag';
+        return (
+          '<div class="fb-entry">' +
+            '<div class="fb-entry-head">' +
+              '<div>' +
+                '<div class="fb-entry-meta">' + when + (row.page_section ? ' · ' + escapeHtml(row.page_section) : '') + '</div>' +
+                '<div class="fb-entry-desc">' + escapeHtml(row.description) + '</div>' +
+                (reporter ? '<div class="fb-entry-reporter">' + escapeHtml(reporter) + '</div>' : '') +
+              '</div>' +
+              '<span class="' + flagClass + ' inline">' + (STATUS_LABEL[row.status] || row.status) + '</span>' +
+            '</div>' +
+            (atts ? '<div class="fb-entry-atts">' + atts + '</div>' : '') +
+          '</div>'
+        );
+      }).join('');
+    }
+
+    function loadIssues() {
+      sb.from('feedback_issues').select('*').order('created_at', { ascending: false }).then(function (res) {
+        if (res.error) {
+          listEl.innerHTML = '<p class="note">Couldn\'t load prior feedback: ' + escapeHtml(res.error.message) + '</p>';
+          return;
+        }
+        renderList(res.data || []);
+      });
+    }
+    loadIssues();
+
+    function renderFileList() {
+      fileListEl.innerHTML = selectedFiles.map(function (f, i) {
+        return '<div class="fb-fileitem"><span>' + f.name + '</span><button type="button" data-idx="' + i + '">Remove</button></div>';
+      }).join('');
+      Array.prototype.slice.call(fileListEl.querySelectorAll('button')).forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          selectedFiles.splice(Number(btn.dataset.idx), 1);
+          renderFileList();
+        });
+      });
+    }
+    function resetForm() {
+      form.reset();
+      selectedFiles = [];
+      renderFileList();
+      statusEl.hidden = true;
+      statusEl.className = 'fb-status';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit feedback';
+    }
+
+    filesInput.addEventListener('change', function () {
+      var incoming = Array.prototype.slice.call(filesInput.files);
+      incoming.forEach(function (f) {
+        if (selectedFiles.length >= MAX_FILES) { return; }
+        if (f.size > MAX_SIZE) {
+          statusEl.hidden = false;
+          statusEl.className = 'fb-status error';
+          statusEl.textContent = '"' + f.name + '" is over 10MB and was skipped.';
+          return;
+        }
+        selectedFiles.push(f);
+      });
+      filesInput.value = '';
+      renderFileList();
+    });
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var description = document.getElementById('fbDesc').value.trim();
+      if (!description) { return; }
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting…';
+      statusEl.hidden = true;
+
+      var issueId = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() :
+        'fb-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+
+      var uploadPromises = selectedFiles.map(function (file, i) {
+        var safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+        var path = issueId + '/' + i + '-' + safeName;
+        return sb.storage.from('feedback-attachments').upload(path, file).then(function (res) {
+          if (res.error) { throw res.error; }
+          return sb.storage.from('feedback-attachments').getPublicUrl(path).data.publicUrl;
+        });
+      });
+
+      Promise.all(uploadPromises).then(function (urls) {
+        return sb.from('feedback_issues').insert({
+          id: issueId,
+          description: description,
+          page_section: document.getElementById('fbSection').value.trim() || null,
+          reporter_name: document.getElementById('fbName').value.trim() || null,
+          reporter_email: document.getElementById('fbEmail').value.trim() || null,
+          attachment_paths: urls
+        });
+      }).then(function (res) {
+        if (res.error) { throw res.error; }
+        statusEl.hidden = false;
+        statusEl.className = 'fb-status success';
+        statusEl.textContent = 'Thanks — your feedback was submitted.';
+        submitBtn.textContent = 'Submitted';
+        loadIssues();
+        setTimeout(resetForm, 1600);
+      }).catch(function (err) {
+        statusEl.hidden = false;
+        statusEl.className = 'fb-status error';
+        statusEl.textContent = 'Something went wrong submitting your feedback: ' + (err && err.message ? err.message : 'please try again.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit feedback';
       });
     });
   })();
