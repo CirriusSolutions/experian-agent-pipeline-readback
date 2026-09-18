@@ -6,14 +6,29 @@ which described a GitHub Pages + Cloudflare Zero Trust Access setup that was nev
 what's deployed):**
 
 This repo holds only the static asset files. The actual production site is a
-**Cloudflare Worker** named `experian-agent-pipeline-readback`, connected to this repo via
-Cloudflare's Git integration — every push to `main` redeploys the assets automatically.
-The Worker's own script (a custom PIN + signed-cookie gate, plus the `/api/feedback/*`
-routes backing the UAT Feedback tab) is **not** in this repo; it's deployed separately via
-`wrangler deploy`. Its source of truth is Gavin's vault at
-`00 INBOX/Agent Task Outputs/experian-feedback-worker/` (`index.js` + `wrangler.toml` + a
-README with redeploy steps) — worth moving to a proper repo with CI if this pipeline stays
-long-lived.
+**Cloudflare Worker** named `experian-agent-pipeline-readback`. **Pushing to this repo does
+NOT update it** (see "Two separate deploy targets" below, corrected 2026-09-18 after this
+exact confusion caused a real content-not-live incident). The Worker's own script (a custom
+PIN + signed-cookie gate, plus the `/api/feedback/*` routes backing the UAT Feedback tab) is
+**not** in this repo; it's deployed via `wrangler deploy`, run manually. Its source of truth
+is Gavin's vault at `00 INBOX/Agent Task Outputs/experian-feedback-worker/` (`index.js` +
+`wrangler.toml` + a README with redeploy steps) — worth moving to a proper repo with CI if
+this pipeline stays long-lived.
+
+## Two separate deploy targets — do not confuse them
+
+This repo has GitHub Pages enabled, which auto-deploys on every push to
+`https://cirriussolutions.github.io/experian-agent-pipeline-readback/`. **That is a
+completely different, unauthenticated surface with no PIN gate** — pushing here updates
+*only* that public mirror, never the actual Cloudflare Worker site Experian uses. Since this
+repo is public, that GitHub Pages URL has been serving the full page — discovery findings,
+named Experian contacts, access asks — with zero authentication. This should be disabled
+(repo Settings → Pages) or the repo made private; flagged to Gavin, not yet resolved as of
+this writing.
+
+**To actually update the live gated site: after changing any file here, someone must also
+run `wrangler deploy` from the `experian-worker-deploy/` workspace described in the vault
+README above.** A `git push` alone is not enough.
 
 **Access control:** gated by a shared PIN, checked server-side by the Worker (not Cloudflare
 Access/Zero Trust as this README previously claimed — that was never built; a simpler
@@ -48,12 +63,13 @@ table/bucket/RLS policies lives in Gavin's vault at
 
 ## Updating
 
-**Page content** (this repo): the source files live in Gavin's vault at
+**Page content:** the source files live in Gavin's vault at
 `00 INBOX/Agent Task Outputs/Experian - BA Process Design Readback - 2026-08-10.html`
 and `00 INBOX/Agent Task Outputs/Experian - UAT Feedback Admin.html`. Copy the current
 version of those files (and the two PoC preview files, if changed) over the matching files
-here and push to `main` — the Worker's Git integration redeploys the assets automatically.
-This does **not** touch the Worker's script or secrets.
+in the `experian-worker-deploy/assets/` workspace (not this repo) and run `wrangler deploy`.
+Pushing to this repo is optional and only affects the public GitHub Pages mirror — see
+above.
 
 **Worker script/API logic** (not in this repo): edit the script in the local
 `experian-worker-deploy/` workspace and run `wrangler deploy` from there. See that
