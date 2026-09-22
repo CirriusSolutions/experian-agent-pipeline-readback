@@ -693,7 +693,8 @@
         <button class="tab" role="tab" aria-selected="false" data-panel="9"><span class="num">09</span> CPQ Requirements</button>
       </div>
       <div class="rail-nav-group" data-impl="account360" role="tablist" aria-label="Account 360 sections" hidden>
-        <button class="tab" role="tab" aria-selected="true" data-panel="a1"><span class="num">01</span> What we need</button>
+        <button class="tab" role="tab" aria-selected="true" data-panel="a2"><span class="num">01</span> Target architecture</button>
+        <button class="tab" role="tab" aria-selected="false" data-panel="a1"><span class="num">02</span> What we need</button>
       </div>
     </div>
     <div class="rail-footer">
@@ -1317,6 +1318,121 @@
 
       <p class="section-label">Submitted so far</p>
       <div class="fb-list" id="fbList"><p class="note">Loading…</p></div>
+    </section>
+
+    <section class="panel" data-panel="a2" hidden>
+      <h2>Target architecture</h2>
+      <p class="lede muted">This is a data pipeline, not a multi-team parallel workflow, so it's shown here as a straight-through flow rather than swimlanes. Several steps still have open questions, flagged where they occur. Not yet written up as a formal architecture doc — this tab is effectively step one of that writeup.</p>
+
+      <div class="steplist">
+        <div class="stepcard">
+          <div class="step-head">
+            <span class="step-num">1</span>
+            <span class="chip">Trigger</span>
+          </div>
+          <p class="step-input">Two paths fire the same pipeline: a <strong>weekly scheduled batch</strong> via AWS EventBridge, similar in shape to Experian's existing Jenkins cron though not a direct replacement of it — or an <strong>on-demand run</strong>, where Salesforce hits Experian's existing EC2 endpoint (no new DNS or firewall work) which invokes the Lambda function directly via a scoped IAM role, routed over a VPC endpoint so traffic never crosses the firewall boundary.</p>
+        </div>
+
+        <div class="step-connector">↓</div>
+
+        <div class="stepcard highlight">
+          <div class="step-head">
+            <span class="step-num">2</span>
+            <span class="chip">Pull from source systems</span>
+          </div>
+          <p class="step-input">Each source authenticates through its own Secrets Manager entry and a dedicated integration account — never named-user credentials. Salesforce / CPQ uses a Connected App with JWT bearer auth.</p>
+          <ul class="arch-list" style="margin-top:14px;">
+            <li><strong>Salesforce / CPQ</strong> — account-visibility-scoped security model. Typically contributes opportunity stage and amount, quote/CPQ status, and product or pricing changes.</li>
+            <li><strong>ServiceNow</strong> — typically contributes aggregate case data: open/closed/in-progress counts and ticket volume trends, not individual ticket comments.</li>
+            <li><strong>Gong</strong> — typically contributes call and meeting transcripts and summaries tied to the account: talk points, sentiment, and follow-up items. Transcripts are already pushed to Salesforce at the task level; still deciding whether to connect to Gong directly or reuse that existing integration.<br /><span class="flag risk">Open</span></li>
+            <li><strong>ZoomInfo</strong> — typically contributes firmographic and org-change signal: company size and structure, and contact/role turnover at the account. Which specific fields matter is still undefined, pending a BA assigned per source to define desired fields and synthesis instructions.<br /><span class="flag risk">Open</span></li>
+            <li><strong>Medallia</strong> — typically contributes customer satisfaction and survey signal: CSAT/NPS scores, survey responses, and sentiment trends. Which specific slices matter is still undefined, pending a BA assigned per source to define desired fields and synthesis instructions.<br /><span class="flag risk">Open</span></li>
+            <li><strong>Tableau / data lake</strong> — typically contributes usage and analytics data: product usage metrics and existing operational reporting. On-prem needs a VPC connection, Cloud may allow a direct API; the fallback is bypassing Tableau and querying the data lake directly.<br /><span class="flag risk">Open</span></li>
+          </ul>
+        </div>
+
+        <div class="step-connector">↓</div>
+
+        <div class="stepcard">
+          <div class="step-head">
+            <span class="step-num">3</span>
+            <span class="chip">Delta vs. full refresh</span>
+          </div>
+          <p class="step-input">Every run checks a single account-level "last run" timestamp. Unchanged sources return a "no change" signal rather than being reprocessed. A full refresh triggers on first run, a new account, or a just-merged account — Salesforce is the source of truth on merges: the losing account drops out of the pipeline entirely, and the winning account gets flagged for a full refresh. Proposed implementation: an account-level checkbox toggling delta/full, auto-set on merge.</p>
+          <div class="step-output">
+            <span class="output-label">Still open</span>
+            <p>Each source may need its own relevance window — e.g. Gong calls older than 30 days are likely irrelevant, while open opportunities aren't time-bounded at all.</p>
+          </div>
+        </div>
+
+        <div class="step-connector">↓</div>
+
+        <div class="stepcard">
+          <div class="step-head">
+            <span class="step-num">4</span>
+            <span class="chip">Synthesize each source individually</span>
+          </div>
+          <p class="step-input">Each signal layer — each source's pulled data — is synthesized on its own first, before anything gets combined across sources.</p>
+        </div>
+
+        <div class="step-connector">↓</div>
+
+        <div class="stepcard">
+          <div class="step-head">
+            <span class="step-num">5</span>
+            <span class="chip">Controller merges against the prior COP</span>
+          </div>
+          <p class="step-input">A controller compares the newly synthesized signals against the account's <em>prior</em> COP output (fed back in as an input) and updates only the sections that actually changed — sources with no new signal are left alone in the narrative. A template governs the output's shape: word count and section structure.</p>
+        </div>
+
+        <div class="step-connector">↓</div>
+
+        <div class="stepcard">
+          <div class="step-head">
+            <span class="step-num">6</span>
+            <span class="chip">Write to the Account 360 object</span>
+          </div>
+          <p class="step-input">Final synthesized text — never raw source data — is written to a single custom object that's a <strong>child of Account</strong> in Salesforce: many records per Account, one Account 360 record per section of the account's story. Which section a record covers is set by its <strong>Record Type</strong>, each holding the synthesized signal for one category of account information:</p>
+          <ul class="arch-list" style="margin-top:14px;">
+            <li><strong>Account Overview</strong> — general account health and relationship synthesis.</li>
+            <li><strong>Opportunities</strong> — pipeline and deal signal.</li>
+            <li><strong>Cases</strong> — support and service signal.</li>
+            <li><strong>Revenue</strong> — financial signal.</li>
+          </ul>
+          <div class="step-output">
+            <span class="output-label">Still open</span>
+            <p>Exact record-type-to-source mapping isn't detailed yet — e.g. which record type ServiceNow and Gong support-related content feeds into, versus which one CRM opportunity data feeds into — beyond these four record type names.</p>
+          </div>
+        </div>
+      </div>
+
+      <p class="section-label">Supporting AWS infrastructure</p>
+      <div class="cards">
+        <div class="card">
+          <span class="chip">Compute</span>
+          <ul>
+            <li>Lambda — serverless, preferred over Experian's existing EC2/IIS/Jenkins pattern, which was judged too light for this payload.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="chip">Storage</span>
+          <ul>
+            <li>S3 — transient batch storage, roughly 1GB per 1,000 accounts.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="chip">Secrets</span>
+          <ul>
+            <li>Secrets Manager — fills a real gap; today's Jenkins credentials aren't externally accessible.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="chip">Scheduling</span>
+          <ul>
+            <li>EventBridge — drives the weekly batch trigger.</li>
+          </ul>
+        </div>
+      </div>
     </section>
 
     <section class="panel" data-panel="a1" hidden>
