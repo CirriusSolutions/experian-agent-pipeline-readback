@@ -656,6 +656,18 @@
   }
   .flag.na { color: var(--muted); background: var(--surface); border: 1px dashed var(--line-strong); }
   .flag.inline { margin-top: 0; flex: 0 0 auto; }
+
+  .cpq-name-field { max-width: 320px; margin-bottom: 18px; }
+  .cpq-table td { vertical-align: top; }
+  .cpq-table .cpq-reason { font-weight: 700; font-size: 0.86rem; white-space: nowrap; }
+  .cpq-table textarea {
+    width: 100%; min-height: 48px; font: inherit; font-size: 0.85rem; color: var(--ink);
+    background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
+    padding: 6px 8px; resize: vertical;
+  }
+  .cpq-table textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+  .cpq-table .cpq-save-cell { text-align: right; white-space: nowrap; vertical-align: bottom; }
+  .cpq-table .cpq-save-note { font-size: 0.76rem; color: var(--muted); margin-right: 8px; }
 </style>
 </head>
 <body>
@@ -678,6 +690,7 @@
         <button class="tab" role="tab" aria-selected="false" data-panel="6"><span class="num">06</span> What we need</button>
         <button class="tab" role="tab" aria-selected="false" data-panel="7"><span class="num">07</span> Delivery options</button>
         <button class="tab" role="tab" aria-selected="false" data-panel="8"><span class="num">08</span> UAT Feedback</button>
+        <button class="tab" role="tab" aria-selected="false" data-panel="9"><span class="num">09</span> CPQ Requirements</button>
       </div>
       <div class="rail-nav-group" data-impl="account360" role="tablist" aria-label="Account 360 sections" hidden>
         <button class="tab" role="tab" aria-selected="true" data-panel="a1"><span class="num">01</span> What we need</button>
@@ -1378,6 +1391,27 @@
       </div>
     </section>
 
+    <section class="panel" data-panel="9" hidden>
+      <h2>CPQ Case Reason Requirements</h2>
+      <p class="lede">Live, editable version of the "07 CPQ - Quote" tab in the Case Reason Field Requirements Matrix — what Case Grooming Skill checks for on every CPQ case. Edit a cell and hit Save on that row; it writes straight to Supabase, no spreadsheet round-trip. Rows are fixed to Salesforce's real Secondary Case Reason picklist for CPQ / Quote — leave a cell blank if it's genuinely not yet answered.</p>
+
+      <div class="fb-field cpq-name-field">
+        <label for="cpqUpdatedBy">Your name (optional, saved with your edits)</label>
+        <input type="text" id="cpqUpdatedBy" placeholder="e.g. Sadar">
+      </div>
+
+      <div class="table-wrap">
+        <table class="asks cpq-table">
+          <thead>
+            <tr><th>Secondary Case Reason</th><th>Required Case Fields</th><th>Required Product Fields</th><th>Notes / Business Rule</th><th></th></tr>
+          </thead>
+          <tbody id="cpqTableBody">
+            <tr><td colspan="5" class="note">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
   </main>
 </div>
 
@@ -1846,6 +1880,81 @@
           submitBtn.textContent = 'Submit feedback';
         });
     });
+  })();
+
+  (function () {
+    var tbody = document.getElementById('cpqTableBody');
+    var updatedByInput = document.getElementById('cpqUpdatedBy');
+    if (!tbody) { return; }
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    function renderRows(rows) {
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="note">No rows found.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = rows.map(function (row) {
+        return (
+          '<tr data-id="' + row.id + '">' +
+            '<td class="cpq-reason">' + escapeHtml(row.secondary_case_reason) + '</td>' +
+            '<td><textarea data-field="required_case_fields">' + escapeHtml(row.required_case_fields) + '</textarea></td>' +
+            '<td><textarea data-field="required_product_fields">' + escapeHtml(row.required_product_fields) + '</textarea></td>' +
+            '<td><textarea data-field="notes">' + escapeHtml(row.notes) + '</textarea></td>' +
+            '<td class="cpq-save-cell"><span class="cpq-save-note"></span><button type="button" class="fb-btn primary cpq-save-btn">Save</button></td>' +
+          '</tr>'
+        );
+      }).join('');
+
+      Array.prototype.slice.call(tbody.querySelectorAll('.cpq-save-btn')).forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var tr = btn.closest('tr');
+          var id = tr.dataset.id;
+          var note = tr.querySelector('.cpq-save-note');
+          var payload = { id: id, updated_by: updatedByInput.value.trim() };
+          Array.prototype.slice.call(tr.querySelectorAll('textarea[data-field]')).forEach(function (ta) {
+            payload[ta.dataset.field] = ta.value;
+          });
+          btn.disabled = true;
+          note.textContent = 'Saving…';
+          fetch('/api/cpq-requirements/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          }).then(function (r) {
+            return r.json().catch(function () { return null; }).then(function (data) { return { ok: r.ok, data: data }; });
+          }).then(function (result) {
+            btn.disabled = false;
+            note.textContent = (result.ok && !(result.data && result.data.error)) ? 'Saved' : 'Failed to save';
+            setTimeout(function () { note.textContent = ''; }, 2000);
+          }).catch(function () {
+            btn.disabled = false;
+            note.textContent = 'Failed to save';
+            setTimeout(function () { note.textContent = ''; }, 2000);
+          });
+        });
+      });
+    }
+
+    function loadCpq() {
+      tbody.innerHTML = '<tr><td colspan="5" class="note">Loading…</td></tr>';
+      fetch('/api/cpq-requirements/list').then(function (r) {
+        return r.json().catch(function () { return null; }).then(function (data) { return { ok: r.ok, data: data }; });
+      }).then(function (result) {
+        if (!result.ok || (result.data && result.data.error)) {
+          tbody.innerHTML = '<tr><td colspan="5" class="note">Failed to load: ' + escapeHtml((result.data && result.data.error) || 'unknown error') + '</td></tr>';
+          return;
+        }
+        renderRows(result.data || []);
+      }).catch(function () {
+        tbody.innerHTML = '<tr><td colspan="5" class="note">Failed to load.</td></tr>';
+      });
+    }
+    loadCpq();
   })();
 </script>
 </body>
