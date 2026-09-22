@@ -657,17 +657,17 @@
   .flag.na { color: var(--muted); background: var(--surface); border: 1px dashed var(--line-strong); }
   .flag.inline { margin-top: 0; flex: 0 0 auto; }
 
-  .cpq-name-field { max-width: 320px; margin-bottom: 18px; }
-  .cpq-table td { vertical-align: top; }
-  .cpq-table .cpq-reason { font-weight: 700; font-size: 0.86rem; white-space: nowrap; }
-  .cpq-table textarea {
+  .editable-name-field { max-width: 320px; margin-bottom: 18px; }
+  .editable-table td { vertical-align: top; }
+  .editable-table .editable-label { font-weight: 700; font-size: 0.86rem; white-space: nowrap; }
+  .editable-table textarea {
     width: 100%; min-height: 48px; font: inherit; font-size: 0.85rem; color: var(--ink);
     background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
     padding: 6px 8px; resize: vertical;
   }
-  .cpq-table textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
-  .cpq-table .cpq-save-cell { text-align: right; white-space: nowrap; vertical-align: bottom; }
-  .cpq-table .cpq-save-note { font-size: 0.76rem; color: var(--muted); margin-right: 8px; }
+  .editable-table textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+  .editable-table .editable-save-cell { text-align: right; white-space: nowrap; vertical-align: bottom; }
+  .editable-table .editable-save-note { font-size: 0.76rem; color: var(--muted); margin-right: 8px; }
 </style>
 </head>
 <body>
@@ -694,7 +694,8 @@
       </div>
       <div class="rail-nav-group" data-impl="account360" role="tablist" aria-label="Account 360 sections" hidden>
         <button class="tab" role="tab" aria-selected="true" data-panel="a2"><span class="num">01</span> Target architecture</button>
-        <button class="tab" role="tab" aria-selected="false" data-panel="a1"><span class="num">02</span> What we need</button>
+        <button class="tab" role="tab" aria-selected="false" data-panel="a3"><span class="num">02</span> Signal Layers</button>
+        <button class="tab" role="tab" aria-selected="false" data-panel="a1"><span class="num">03</span> What we need</button>
       </div>
     </div>
     <div class="rail-footer">
@@ -1435,6 +1436,27 @@
       </div>
     </section>
 
+    <section class="panel" data-panel="a3" hidden>
+      <h2>Signal Layer Requirements</h2>
+      <p class="lede">For each source feeding the Account 360 pipeline: what data we expect to see out of it, what objects or query needs to run against it, and what insight that data actually supports. Edit a cell and hit Save on that row; it writes straight to Supabase. Rows are fixed to the pipeline's known signal layers — this page can edit but not add/remove rows.</p>
+
+      <div class="fb-field editable-name-field">
+        <label for="signalUpdatedBy">Your name (optional, saved with your edits)</label>
+        <input type="text" id="signalUpdatedBy" placeholder="e.g. Sadar">
+      </div>
+
+      <div class="table-wrap">
+        <table class="asks editable-table">
+          <thead>
+            <tr><th>Signal Layer</th><th>Data We Expect</th><th>Objects / Query Needed</th><th>Insight It Supports</th><th></th></tr>
+          </thead>
+          <tbody id="signalTableBody">
+            <tr><td colspan="5" class="note">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <section class="panel" data-panel="a1" hidden>
       <h2>What we need from Experian</h2>
       <p class="lede">The Account 360 / COP Refresh SOW was executed 2026-09-09; delivery runs 2026-10-05 through 2026-11-27. The first discovery session (same day) surfaced the access and provisioning this build depends on. None of it was modeled as a separate workflow going in — every source integration is expected to run through dedicated service accounts, most of which still need to be confirmed or provisioned.</p>
@@ -1511,13 +1533,13 @@
       <h2>CPQ Case Reason Requirements</h2>
       <p class="lede">Live, editable version of the "07 CPQ - Quote" tab in the Case Reason Field Requirements Matrix — what Case Grooming Skill checks for on every CPQ case. Edit a cell and hit Save on that row; it writes straight to Supabase, no spreadsheet round-trip. Rows are fixed to Salesforce's real Secondary Case Reason picklist for CPQ / Quote — leave a cell blank if it's genuinely not yet answered.</p>
 
-      <div class="fb-field cpq-name-field">
+      <div class="fb-field editable-name-field">
         <label for="cpqUpdatedBy">Your name (optional, saved with your edits)</label>
         <input type="text" id="cpqUpdatedBy" placeholder="e.g. Sadar">
       </div>
 
       <div class="table-wrap">
-        <table class="asks cpq-table">
+        <table class="asks editable-table">
           <thead>
             <tr><th>Secondary Case Reason</th><th>Required Case Fields</th><th>Required Product Fields</th><th>Notes / Business Rule</th><th></th></tr>
           </thead>
@@ -1998,10 +2020,11 @@
     });
   })();
 
-  (function () {
-    var tbody = document.getElementById('cpqTableBody');
-    var updatedByInput = document.getElementById('cpqUpdatedBy');
+  function initEditableTable(config) {
+    var tbody = document.getElementById(config.tbodyId);
+    var updatedByInput = document.getElementById(config.updatedByInputId);
     if (!tbody) { return; }
+    var colCount = config.fields.length + 2;
 
     function escapeHtml(s) {
       return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -2011,33 +2034,34 @@
 
     function renderRows(rows) {
       if (!rows.length) {
-        tbody.innerHTML = '<tr><td colspan="5" class="note">No rows found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="' + colCount + '" class="note">No rows found.</td></tr>';
         return;
       }
       tbody.innerHTML = rows.map(function (row) {
+        var cells = config.fields.map(function (field) {
+          return '<td><textarea data-field="' + field + '">' + escapeHtml(row[field]) + '</textarea></td>';
+        }).join('');
         return (
           '<tr data-id="' + row.id + '">' +
-            '<td class="cpq-reason">' + escapeHtml(row.secondary_case_reason) + '</td>' +
-            '<td><textarea data-field="required_case_fields">' + escapeHtml(row.required_case_fields) + '</textarea></td>' +
-            '<td><textarea data-field="required_product_fields">' + escapeHtml(row.required_product_fields) + '</textarea></td>' +
-            '<td><textarea data-field="notes">' + escapeHtml(row.notes) + '</textarea></td>' +
-            '<td class="cpq-save-cell"><span class="cpq-save-note"></span><button type="button" class="fb-btn primary cpq-save-btn">Save</button></td>' +
+            '<td class="editable-label">' + escapeHtml(row[config.labelField]) + '</td>' +
+            cells +
+            '<td class="editable-save-cell"><span class="editable-save-note"></span><button type="button" class="fb-btn primary editable-save-btn">Save</button></td>' +
           '</tr>'
         );
       }).join('');
 
-      Array.prototype.slice.call(tbody.querySelectorAll('.cpq-save-btn')).forEach(function (btn) {
+      Array.prototype.slice.call(tbody.querySelectorAll('.editable-save-btn')).forEach(function (btn) {
         btn.addEventListener('click', function () {
           var tr = btn.closest('tr');
           var id = tr.dataset.id;
-          var note = tr.querySelector('.cpq-save-note');
+          var note = tr.querySelector('.editable-save-note');
           var payload = { id: id, updated_by: updatedByInput.value.trim() };
           Array.prototype.slice.call(tr.querySelectorAll('textarea[data-field]')).forEach(function (ta) {
             payload[ta.dataset.field] = ta.value;
           });
           btn.disabled = true;
           note.textContent = 'Saving…';
-          fetch('/api/cpq-requirements/update', {
+          fetch(config.endpoint + '/update', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -2056,22 +2080,38 @@
       });
     }
 
-    function loadCpq() {
-      tbody.innerHTML = '<tr><td colspan="5" class="note">Loading…</td></tr>';
-      fetch('/api/cpq-requirements/list').then(function (r) {
+    function load() {
+      tbody.innerHTML = '<tr><td colspan="' + colCount + '" class="note">Loading…</td></tr>';
+      fetch(config.endpoint + '/list').then(function (r) {
         return r.json().catch(function () { return null; }).then(function (data) { return { ok: r.ok, data: data }; });
       }).then(function (result) {
         if (!result.ok || (result.data && result.data.error)) {
-          tbody.innerHTML = '<tr><td colspan="5" class="note">Failed to load: ' + escapeHtml((result.data && result.data.error) || 'unknown error') + '</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="' + colCount + '" class="note">Failed to load: ' + escapeHtml((result.data && result.data.error) || 'unknown error') + '</td></tr>';
           return;
         }
         renderRows(result.data || []);
       }).catch(function () {
-        tbody.innerHTML = '<tr><td colspan="5" class="note">Failed to load.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="' + colCount + '" class="note">Failed to load.</td></tr>';
       });
     }
-    loadCpq();
-  })();
+    load();
+  }
+
+  initEditableTable({
+    tbodyId: 'cpqTableBody',
+    updatedByInputId: 'cpqUpdatedBy',
+    endpoint: '/api/cpq-requirements',
+    labelField: 'secondary_case_reason',
+    fields: ['required_case_fields', 'required_product_fields', 'notes']
+  });
+
+  initEditableTable({
+    tbodyId: 'signalTableBody',
+    updatedByInputId: 'signalUpdatedBy',
+    endpoint: '/api/account360-signals',
+    labelField: 'signal_layer',
+    fields: ['expected_data', 'objects_queries', 'insights']
+  });
 </script>
 </body>
 </html>
