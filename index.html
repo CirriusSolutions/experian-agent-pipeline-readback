@@ -668,6 +668,10 @@
   .editable-table textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
   .editable-table .editable-save-cell { text-align: right; white-space: nowrap; vertical-align: bottom; }
   .editable-table .editable-save-note { font-size: 0.76rem; color: var(--muted); margin-right: 8px; }
+  .editable-table .editable-group-row td {
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700;
+    color: var(--muted); padding: 18px 0 6px; border-bottom: 1px solid var(--line-strong);
+  }
 </style>
 </head>
 <body>
@@ -2037,17 +2041,28 @@
         tbody.innerHTML = '<tr><td colspan="' + colCount + '" class="note">No rows found.</td></tr>';
         return;
       }
+      var lastGroup;
       tbody.innerHTML = rows.map(function (row) {
+        var rowHtml = '';
+        if (config.groupField) {
+          var g = row[config.groupField];
+          if (g !== lastGroup) {
+            var label = (config.groupLabels && config.groupLabels[g]) || g;
+            rowHtml += '<tr class="editable-group-row"><td colspan="' + colCount + '">' + escapeHtml(label) + '</td></tr>';
+            lastGroup = g;
+          }
+        }
         var cells = config.fields.map(function (field) {
           return '<td><textarea data-field="' + field + '">' + escapeHtml(row[field]) + '</textarea></td>';
         }).join('');
-        return (
+        rowHtml += (
           '<tr data-id="' + row.id + '">' +
             '<td class="editable-label">' + escapeHtml(row[config.labelField]) + '</td>' +
             cells +
             '<td class="editable-save-cell"><span class="editable-save-note"></span><button type="button" class="fb-btn primary editable-save-btn">Save</button></td>' +
           '</tr>'
         );
+        return rowHtml;
       }).join('');
 
       Array.prototype.slice.call(tbody.querySelectorAll('.editable-save-btn')).forEach(function (btn) {
@@ -2110,7 +2125,9 @@
     updatedByInputId: 'signalUpdatedBy',
     endpoint: '/api/account360-signals',
     labelField: 'signal_layer',
-    fields: ['expected_data', 'objects_queries', 'insights']
+    fields: ['expected_data', 'objects_queries', 'insights'],
+    groupField: 'tier',
+    groupLabels: { core: 'Core signal layers', 'second-tier': '2nd-tier priorities' }
   });
 </script>
 </body>
