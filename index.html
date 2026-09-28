@@ -1090,8 +1090,8 @@
 
     <section class="panel" data-panel="6" hidden>
       <h2>What we need from Experian</h2>
+      <p class="lede">Down to three things right now.</p>
 
-      <p class="section-label">Access needs</p>
       <div class="table-wrap">
         <table class="asks">
           <thead>
@@ -1099,73 +1099,19 @@
           </thead>
           <tbody>
             <tr>
-              <td>Lucid access</td>
-              <td>Mark</td>
-              <td>Discovery process diagrams</td>
-            </tr>
-            <tr>
-              <td>Local git CLI access to Bitbucket, if needed for the codebase itself</td>
-              <td>Sadar</td>
-              <td>No longer needed for PoC hosting. Still an open question for the actual Apex/LWC codebase — the 2026-08-18 session confirmed Salesforce as the source of truth for pipeline <em>artifacts</em>, but didn't explicitly cover the codebase itself. If it turns out to be needed, CLI-based access is still recommended over a hosted connector, matching the System Connections pattern.<br /><span class="flag risk">Confirming with Sadar</span></td>
-            </tr>
-            <tr>
-              <td>Access to lower Salesforce sandboxes</td>
-              <td>Sadar</td>
-              <td>Needed to continue building and testing the Development & Testing Skill against real dev-cycle conditions rather than Cirrius's own replica org<br /><span class="flag risk">Outstanding — blocking dev-cycle work</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <p class="section-label">Process changes</p>
-      <div class="table-wrap">
-        <table class="asks">
-          <thead>
-            <tr><th>Ask</th><th>Owner</th><th>Note</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Salesforce Platform resources linked directly to the Case</td>
-              <td>Mark, Ed</td>
-              <td>Meeting recording links and supporting documentation links attached to the Case record itself, not a separate folder — this is what the Discovery Skill reads from</td>
-            </tr>
-            <tr>
-              <td>Write-up: case types → required fields/information per type</td>
-              <td>Mark, James</td>
-              <td>The Case Grooming Skill routes each case by its Case Reason and enforces a different set of required fields per reason before the case can proceed. The mapping is built and working end to end today against placeholder reason values and placeholder fields — this write-up replaces the placeholders with Experian's real ones.<br /><span class="flag">New ask</span></td>
-            </tr>
-            <tr>
-              <td>Write-up: same mapping, for user stories</td>
-              <td>Mark, James</td>
-              <td>Same shape of requirement, one level up — which fields/information a user story needs before it's considered ready, by story type. Needed for the equivalent check in the User Story Generation Skill.<br /><span class="flag">New ask</span></td>
-            </tr>
-            <tr>
-              <td>Demo video of the real CPQ configurator in use</td>
+              <td>Example CPQ User Story output</td>
               <td>James</td>
-              <td>Needed to update the CPQ PoC Skill's output so it matches real configurator behavior rather than the current best-guess layout<br /><span class="flag">New ask</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <p class="section-label">Backup tooling continuity (AgentForce Vibes)</p>
-      <p>Sadar's team wants Claude Code as primary, with <strong>AgentForce Vibes</strong> — Salesforce's rebranded Einstein for Developers, also running on Claude Sonnet 4.5 under the hood — as a backup if Claude Code credits run out mid-month. Vibes' skill format (<code>.vibes/skills/</code>) is structurally close to Claude Code's, and it supports adding remote MCP servers the same way, so this pipeline's skill logic is likely portable. Bitbucket access isn't a concern either way — VS Code's native git works with any publicly reachable git remote.</p>
-      <p class="insight">The real risk isn't the tool surface, it's the network: Vibes only connects to resources reachable via an unrestricted public URL — it explicitly does not work behind a VPN or private network. If Experian's Bitbucket or Lucid sit behind a corporate VPN or IP-allowlist, Vibes can't reach them as a fallback, regardless of MCP support. If Vibes ends up running inside a VDI, it's already on Experian's internal network, so this constraint may not apply the same way — that needs an actual test once Vibes is provisioned, not an assumption either way. Worth confirming before this gets promised to the team as a real backup path.</p>
-      <div class="table-wrap">
-        <table class="asks">
-          <thead>
-            <tr><th>Ask</th><th>Owner</th><th>Note</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Confirm AgentForce Vibes licensing model</td>
-              <td>Sadar</td>
-              <td>Flex Credits (consumption pool) vs. a named-user Permission Set License — changes both cost exposure and whether new BAs can self-serve access<br /><span class="flag">New ask</span></td>
+              <td>Needed to update the CPQ PoC Skill's output and the User Story Generation Skill so they match a real, finished story rather than a best-guess format.<br /><span class="flag risk">Outstanding</span></td>
             </tr>
             <tr>
-              <td>Confirm Bitbucket and Lucid are reachable via an unrestricted public URL</td>
-              <td>Sadar, Mark</td>
-              <td>Vibes' remote-connection model (git remotes and MCP servers alike) requires public reachability — a VPN or private network on either blocks Vibes from reaching it as a fallback<br /><span class="flag">New ask</span></td>
+              <td>Populate Case Reason field mappings with real requirements</td>
+              <td>Mark, James</td>
+              <td>Tracked live on the CPQ Requirements tab — most Secondary Case Reason rows are still unanswered. Needs someone from the BA team to fill in Required Case Fields, Required Product Fields, and Notes directly there.<br /><span class="flag risk">Outstanding</span></td>
+            </tr>
+            <tr>
+              <td>UAT feedback from every team</td>
+              <td>All Experian teams</td>
+              <td>Tracked live on the UAT Feedback tab — submit issues there directly as testing continues.<br /><span class="flag risk">Outstanding</span></td>
             </tr>
           </tbody>
         </table>
@@ -1463,50 +1409,9 @@
 
     <section class="panel" data-panel="a1" hidden>
       <h2>What we need from Experian</h2>
-      <p class="lede">The Account 360 / COP Refresh SOW was executed 2026-09-09; delivery runs 2026-10-05 through 2026-11-27. The first discovery session (same day) surfaced the access and provisioning this build depends on. None of it was modeled as a separate workflow going in — every source integration is expected to run through dedicated service accounts, most of which still need to be confirmed or provisioned.</p>
+      <p class="lede">Everything this build still needs from Experian, narrowed to three things: AWS access, credentials stored per source system, and finalized queries per source.</p>
 
-      <p class="section-label">Integration accounts &amp; API access</p>
-      <div class="table-wrap">
-        <table class="asks">
-          <thead>
-            <tr><th>Ask</th><th>Owner</th><th>Note</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Salesforce/CPQ integration user + Connected App</td>
-              <td>Sadar</td>
-              <td>JWT bearer auth. Read access for signal pull, plus a separate, narrower write grant limited to the two COP output fields.<br /><span class="flag risk">Outstanding</span></td>
-            </tr>
-            <tr>
-              <td>ServiceNow API access + integration user</td>
-              <td>Sadar</td>
-              <td>Needs confirmation that API access is enabled on Experian's instance, then a dedicated integration user provisioned.<br /><span class="flag risk">Outstanding</span></td>
-            </tr>
-            <tr>
-              <td>Gong API access + credentials</td>
-              <td>Sadar</td>
-              <td>Needs confirmation the current plan includes API access, then credentials issued on an integration/admin account — not a named user.<br /><span class="flag risk">Outstanding</span></td>
-            </tr>
-            <tr>
-              <td>ZoomInfo API access + API key</td>
-              <td>Sadar</td>
-              <td>Needs confirmation the current plan includes API access, then an API key issued.<br /><span class="flag risk">Outstanding</span></td>
-            </tr>
-            <tr>
-              <td>Medallia integration-account credentials</td>
-              <td>Sadar</td>
-              <td>API credentials on a dedicated integration account.<br /><span class="flag risk">Outstanding</span></td>
-            </tr>
-            <tr>
-              <td>Tableau or data lake — access path decision</td>
-              <td>Sadar, Tableau team</td>
-              <td>Either a Tableau Personal Access Token or a data-lake service account, pending Experian's Tableau team confirming API access and account-ID mapping — including whether Tableau is on-prem or Cloud, which decides if a VPC connection is needed.<br /><span class="flag risk">Outstanding</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <p class="section-label">Infrastructure &amp; access</p>
+      <p class="section-label">AWS access</p>
       <div class="table-wrap">
         <table class="asks">
           <thead>
@@ -1519,14 +1424,66 @@
               <td>Standard user onboarding plus break-glass admin, via a ServiceNow ticket through Experian's identity team.<br /><span class="flag risk">Outstanding</span></td>
             </tr>
             <tr>
-              <td>IAM role scoped to invoke the new Lambda function</td>
+              <td>IAM role scoped to invoke the Lambda function</td>
               <td>Richard</td>
               <td>Backs the on-demand trigger on Experian's EC2 instance. Deliberately scoped this way to avoid new DNS/firewall work rather than opening a network path.<br /><span class="flag">New ask</span></td>
             </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="section-label">Credentials stored per source system</p>
+      <div class="table-wrap">
+        <table class="asks">
+          <thead>
+            <tr><th>Source</th><th>Owner</th><th>Note</th></tr>
+          </thead>
+          <tbody>
             <tr>
-              <td>EC2 / IIS / Jenkins architecture diagrams</td>
-              <td>Richard</td>
-              <td>Not a provisioning item, but blocks finalizing the AWS side of the design. Partially delivered 2026-09-11 (RMA-upgrade documentation and diagrams); remainder still owed.<br /><span class="flag risk">Partially delivered</span></td>
+              <td>Salesforce / CPQ</td>
+              <td>Sadar</td>
+              <td>Connected App with JWT bearer auth. Read access for the signal pull, plus a separate, narrower write grant limited to the two COP output fields.<br /><span class="flag risk">Outstanding</span></td>
+            </tr>
+            <tr>
+              <td>ServiceNow</td>
+              <td>Sadar</td>
+              <td>Dedicated integration user, stored in Secrets Manager.<br /><span class="flag risk">Outstanding</span></td>
+            </tr>
+            <tr>
+              <td>Gong</td>
+              <td>Sadar</td>
+              <td>Credentials on an integration/admin account — not a named user.<br /><span class="flag risk">Outstanding</span></td>
+            </tr>
+            <tr>
+              <td>ZoomInfo</td>
+              <td>Sadar</td>
+              <td>API key, tied to an integration account.<br /><span class="flag risk">Outstanding</span></td>
+            </tr>
+            <tr>
+              <td>Medallia</td>
+              <td>Sadar</td>
+              <td>Credentials on a dedicated integration account.<br /><span class="flag risk">Outstanding</span></td>
+            </tr>
+            <tr>
+              <td>Tableau / data lake</td>
+              <td>Sadar, Tableau team</td>
+              <td>Either a Tableau Personal Access Token or a data-lake service account, depending on the access-path decision tracked on the Signal Layers tab.<br /><span class="flag risk">Outstanding</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="section-label">Finalized queries</p>
+      <div class="table-wrap">
+        <table class="asks">
+          <thead>
+            <tr><th>Ask</th><th>Owner</th><th>Note</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Confirm the exact objects, fields, and date ranges per source</td>
+              <td>Sadar, source owners</td>
+              <td>Tracked live on the Signal Layers tab. Salesforce/CPQ and ServiceNow are functionally answered, and Gong is answered (last 60 days). ZoomInfo, Medallia, and Tableau/data lake still need final confirmation.<br /><span class="flag risk">Partially answered</span></td>
             </tr>
           </tbody>
         </table>
